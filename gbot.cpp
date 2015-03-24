@@ -18,11 +18,11 @@ Target col_pos[GAME_COLS+1] = {{RENDEZVOUS_X, RENDEZVOUS_Y, HALFPI, TARGET_WATCH
 	{RENDEZVOUS_X, 845, HALFPI, TARGET_PLAY}, {RENDEZVOUS_X, 890, HALFPI, TARGET_PLAY}, {RENDEZVOUS_X, 935, HALFPI, TARGET_PLAY}};
 
 byte best_top_slot;
-int score = 0;
 byte continuous_ours = 0;
 byte continuous_theirs = 0;
 bool streak = true;
 byte prev_slot = OUR_BALL;
+int score = 0;
 
 byte rel_pos;
 
@@ -48,21 +48,20 @@ void user_correct() {
 // called after arriving
 void user_waypoint() {
 	// listen to game whenever not moving
-	if (target == NONE_ACTIVE) {
-		layers[LAYER_WATCH].active = true;
-	}
+	// if (target == NONE_ACTIVE) {
+	// 	layers[LAYER_WATCH].active = true;
+	// }
 }
 
 
 void initialize_gbot(byte lift, byte ball) {
-	bool ball_dropped = false;
+	ball_dropped = false;
 	// PWM to control ball lift
 	lift_pin = lift;
 	pinMode(lift_pin, OUTPUT);
 	ball_pin = ball;
 	pinMode(ball_pin, INPUT);
 
-	score = 0;
 	continuous_ours = 0;
 	continuous_theirs = 0;
 	best_top_slot = 3;
@@ -75,8 +74,6 @@ void initialize_gbot(byte lift, byte ball) {
 	ball_drops = BALL_LESS;
 	played_ball = false;
 
-	// cycles_on_line = 0;	// counter for continuous cycles on line
-	// counted_lines = 0;
 
 	// initialize game board
 	for (byte col = 0; col < GAME_COLS; ++col) {
@@ -85,7 +82,7 @@ void initialize_gbot(byte lift, byte ball) {
 		}
 	}
 	for (byte col = 0; col < GAME_COLS; ++col) {
-		top_slots[col] = {col, 0, 0};
+		top_slots[col] = {col, 0, 0};	// initially 0 height and 0 score
 	}
 
 	layers[LAYER_WATCH].speed = 0;

@@ -17,6 +17,9 @@ void watch_balls_drop() {
 		else if (ball_status == SECURED_BALL) {
 			pick_best_col();
 
+			SERIAL_PRINT('r');	// received ball
+			SERIAL_PRINTLN(best_top_slot);
+
 			ball_status = BALL_TO_BE_DROPPED;
 			played_ball = false;
 

@@ -58,8 +58,8 @@ constexpr int BACKWARD = -1;
 constexpr float BASE_WIDTH = 99.0;
 constexpr float TURNING_RADIUS = BASE_WIDTH;
 constexpr float RECIPROCAL_BASE_WIDTH = 0.01004009;	// using reciprocal due to faster multiply than divide
-constexpr float MM_PER_TICK_L = 0.1714829559*1000/1045;
-constexpr float MM_PER_TICK_R = 0.16966084148*1000/1045;
+constexpr float MM_PER_TICK_L = 0.1688929559*1000/1045;
+constexpr float MM_PER_TICK_R = 0.16956084148*1000/1045;
 
 constexpr float KP = 1.194;
 constexpr float KI = 1.2;
@@ -77,7 +77,7 @@ constexpr float TARGET_CIRCLE = 10.0;	// allow for 20mm error from target
 constexpr float TARGET_IMMEDIATE = 5.0;// don't try to get closer than 5mm (fixes high heading error when really close)
 constexpr float TARGET_CLOSE = 200.0;	// slow down 100mm from target
 constexpr int NAV_TURN = 20;			// turn size in ticks/cycle, adjustable
-constexpr float THETA_TOLERANCE = 0.03;	// around 3 degree turning
+constexpr float THETA_TOLERANCE = 0.05;	// around 6 degree turning
 
 constexpr int ANY_THETA = 9000;	// if no target is set
 constexpr float CAN_TURN_IN_PLACE = 0.5; // minimum angle to activate turning in place
@@ -126,6 +126,8 @@ constexpr int RENDEZVOUS_CLOSE = 40;	// within 4cm of rendezvous
 constexpr byte GAME_COLS = 7;
 constexpr byte GAME_HEIGHT = 6;	// 6 balls max
 constexpr byte SCORE_DEPTH = 3;	// only consider 3 away from the ball
+constexpr byte TWO_IN_ROW = 2;
+constexpr byte THREE_IN_ROW = 3;
 
 constexpr byte NO_BALL  = 0;
 constexpr byte OUR_BALL = 1;

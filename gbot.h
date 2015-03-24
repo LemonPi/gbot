@@ -21,12 +21,12 @@ extern Slot top_slots[GAME_COLS];			// top of the stack of balls
 extern Target col_pos[GAME_COLS+1];			// physical location of the locations to play the ball
 
 extern byte best_top_slot;
-extern int score;
 extern byte continuous_ours;
 extern byte continuous_theirs;
 extern bool streak;
 extern byte prev_slot;
 extern byte rel_pos;
+extern int score;
 
 
 // sensor bar

@@ -28,6 +28,7 @@ void play_ball() {
 
 			// if returning to the rendezvous point can simply stop here and switch to watch mode
 			if (targets[target].type == TARGET_WATCH) {
+				SERIAL_PRINTLN('r');
 				// rendezvous location loads to col 4
 				rel_pos = COL_4;
 				layers[LAYER_PLAY].active = false;
@@ -36,6 +37,7 @@ void play_ball() {
 
 			// else must be to deposit a ball
 			else {
+				SERIAL_PRINTLN('z');
 				// listen for self drop
 				layers[LAYER_WATCH].active = true;
 				ball_dropped = false;
@@ -47,6 +49,7 @@ void play_ball() {
 		play.speed = 0;
 		// ball is missing from bottom and sensors detect a ball dropped; indication can move back
 		if (!received_ball() && played_ball) {
+			SERIAL_PRINTLN("ret");
 			// change the target to be rendezvous point and to watch
 			targets[target].x = RENDEZVOUS_X;
 			targets[target].y = RENDEZVOUS_Y;
@@ -55,6 +58,7 @@ void play_ball() {
 		}
 		// perhaps jammed, try again
 		else if (!played_ball && ball_status == BALL_LESS) {
+			SERIAL_PRINTLN('j');
 			stop_lift_ball();
 			delay(50);
 			ball_status = BALL_TO_BE_DROPPED * 0.5;
@@ -140,8 +144,8 @@ void score_slot(byte c, byte h) {
 		if (prev_slot == OUR_BALL) {
 			++continuous_ours;
 			// good chance of scoring if many continuous (will += 4 if connecting 4)
-			if (continuous_ours > 2) score += 3; 
-			else if (continuous_ours > 1) ++score;
+			if (continuous_ours >= THREE_IN_ROW) score += 3; 
+			else if (continuous_ours >= TWO_IN_ROW) ++score;
 		}
 		// streak broken, don't care about additional balls past this point
 		else streak = false;
@@ -150,7 +154,8 @@ void score_slot(byte c, byte h) {
 		// check if it's first one away
 		if (prev_slot == THEIR_BALL || (continuous_ours == 0 && continuous_theirs == 0)) {
 			++continuous_theirs;
-			if (continuous_theirs > 2) score += 2;
+			if (continuous_theirs >= THREE_IN_ROW) score += 2;
+			else if (continuous_theirs >= TWO_IN_ROW) ++score;
 		}
 		else streak = false;
 	}	

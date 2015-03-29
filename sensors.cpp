@@ -34,6 +34,14 @@ void correct_to_grid() {
 	}
 }
 
+bool far_from_intersection(int xx, int yy) {
+	byte offset_x = abs((int)xx) % GRID_WIDTH;
+	byte offset_y = abs((int)yy) % GRID_WIDTH;
+	return (offset_x < INTERSECTION_TOO_CLOSE || offset_x > GRID_WIDTH - INTERSECTION_TOO_CLOSE) ^
+			(offset_y < INTERSECTION_TOO_CLOSE || offset_y > GRID_WIDTH - INTERSECTION_TOO_CLOSE);	
+}
+
+
 // round angle to multiples of 90
 int square_heading() {
 	return round(theta*RADS / 90) * 90;

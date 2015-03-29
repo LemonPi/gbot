@@ -33,16 +33,16 @@ void avoid_boundary() {
 		boundary.distance = sqrt(sq(diff_x) + sq(diff_y)) - boundary.r;
 		if (boundary.distance < 0) { boundary.distance = 0; boundary.threat = EXISTENTIAL_THREAT; }
 		// compare this with theta to see if collision likely
-		boundary.theta = atan2(diff_y, diff_x);
-
-		double boundary_heading_error = boundary.theta - theta;
+		boundary.theta = atan2(diff_y, diff_x) - theta;
+		if (boundary.theta > PI) boundary.theta -= TWOPI;
+		else if (boundary.theta < -PI) boundary.theta += TWOPI;
 
 		if (boundary.distance < BOUNDARY_TOO_CLOSE &&
-			(abs(boundary_heading_error) < BOUNDARY_TOLERANCE)) {
+			(abs(boundary.theta) < BOUNDARY_TOLERANCE)) {
 
 			// high threat comes from being closer and a straight hit
 			boundary.threat = (BOUNDARY_TOO_CLOSE - boundary.distance) * 
-								(BOUNDARY_TOLERANCE - abs(boundary_heading_error)) / BOUNDARY_TOLERANCE;
+								(BOUNDARY_TOLERANCE - abs(boundary.theta)) / BOUNDARY_TOLERANCE;
 	
 		}
 		// no threat, either angle not a concern or too far away
@@ -70,13 +70,12 @@ void avoid_boundary() {
 		bound.speed = TOP_SPEED * 0.5;
 		// want to keep boundary at +- 90 degrees to hug around it
 		// if boundary_heading_error > 0, robot is on left of boundary
-		double boundary_heading_error = boundaries[active_boundary].theta - theta;
-		if (boundary_heading_error > 0) {
-			if (boundary_heading_error > HALFPI) bound.angle = BOUND_TURN;
+		if (boundaries[active_boundary].theta > 0) {
+			if (boundaries[active_boundary].theta > HALFPI) bound.angle = BOUND_TURN;
 			else bound.angle = -BOUND_TURN;
 		}
 		else {
-			if (boundary_heading_error < -HALFPI) bound.angle = -BOUND_TURN;
+			if (boundaries[active_boundary].theta < -HALFPI) bound.angle = -BOUND_TURN;
 			else bound.angle = BOUND_TURN;
 		}
 	}	

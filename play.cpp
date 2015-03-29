@@ -7,6 +7,8 @@ namespace robot {
 void play_ball() {
 	Layer& play = layers[LAYER_PLAY];
 	if (!play.active) return;
+	// just don't...
+	layers[LAYER_TURN].active = false;
 
 	play.angle = 0;
 
@@ -27,8 +29,8 @@ void play_ball() {
 			 ((target_distance < TARGET_CIRCLE) && (target_distance > last_target_distance))) {
 
 			// if returning to the rendezvous point can simply stop here and switch to watch mode
-			if (targets[target].type == TARGET_WATCH) {
-				SERIAL_PRINTLN('r');
+			if (targets[target].type == TARGET_WATCH && ball_dropped) {
+				SERIAL_PRINTLN('R');
 				// rendezvous location loads to col 4
 				rel_pos = COL_4;
 				layers[LAYER_PLAY].active = false;
@@ -49,6 +51,7 @@ void play_ball() {
 		play.speed = 0;
 		// ball is missing from bottom and sensors detect a ball dropped; indication can move back
 		if (!received_ball() && played_ball) {
+			stop_lift_ball();
 			SERIAL_PRINTLN("ret");
 			// change the target to be rendezvous point and to watch
 			targets[target].x = RENDEZVOUS_X;
@@ -56,7 +59,7 @@ void play_ball() {
 			targets[target].type = TARGET_WATCH;
 			layers[LAYER_WATCH].active = false;
 		}
-		// perhaps jammed, try again
+		// perhaps jammed, try again (counted down all the way to 0)
 		else if (!played_ball && ball_status == BALL_LESS) {
 			SERIAL_PRINTLN('j');
 			stop_lift_ball();
@@ -64,6 +67,7 @@ void play_ball() {
 			ball_status = BALL_TO_BE_DROPPED * 0.5;
 		}
 		else {
+			layers[LAYER_WATCH].active = true;
 			lift_ball();
 			--ball_status;
 		}

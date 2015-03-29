@@ -38,7 +38,16 @@ extern byte ball_drops;
 extern bool played_ball;
 
 
-extern float last_correct_distance;
+// correction
+extern int cycles_on_line;
+extern int counted_lines;
+// sonar
+extern byte trigs[SONAR_MAX];
+extern byte echos[SONAR_MAX];
+extern float prev_wall_distance[SONAR_MAX];
+extern float wall_distance[SONAR_MAX];
+extern byte sonar_num;
+extern byte sonar_cycle;
 
 
 void initialize_gbot(byte lift_p, byte ball_p);
@@ -62,6 +71,8 @@ void calibrate_bar();
 bool received_ball();
 
 // user correct
-// correct theta at lines
+byte add_sonar(byte t, byte e);
+void passive_position_correct();
+void parallel_park();
 
 }

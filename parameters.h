@@ -1,6 +1,8 @@
 #pragma once
 #include <Arduino.h>
 
+#define DEBUGGING
+
 #ifdef DEBUGGING
 	#define SERIAL_PRINT(...) Serial.print(__VA_ARGS__);
 	#define SERIAL_PRINTLN(...) Serial.println(__VA_ARGS__);
@@ -22,14 +24,15 @@ constexpr bool MANUAL = false;
 constexpr bool AUTOMATIC = true;
 
 // subsumption layers
-constexpr byte LAYER_NUM = 6;
+constexpr byte LAYER_NUM = 7;
 constexpr byte LAYER_BOUND = 0; // highest priority
 constexpr byte LAYER_PLAY = 1;
-constexpr byte LAYER_TURN = 2;
-constexpr byte LAYER_NAV = 3;
-constexpr byte LAYER_WATCH = 4;
-constexpr byte LAYER_WAIT = 5;
-constexpr byte LAYER_GET = 6;	// non-existent layer
+constexpr byte LAYER_COR = 2;
+constexpr byte LAYER_TURN = 3;
+constexpr byte LAYER_NAV = 4;
+constexpr byte LAYER_WATCH = 5;
+constexpr byte LAYER_WAIT = 6;
+constexpr byte LAYER_GET = 7;	// non-existent layer
 
 constexpr int CYCLE_TIME = 50; 	// in ms
 constexpr int SENSOR_TIME = 10;  // in ms, 5x faster than navigation cycles
@@ -37,7 +40,8 @@ constexpr int SENSOR_TIME = 10;  // in ms, 5x faster than navigation cycles
 // maximum array bounds
 constexpr byte BOUNDARY_MAX = 0;
 constexpr byte TARGET_MAX = 10;
-constexpr byte SENSOR_MAX = 0;
+constexpr byte SENSOR_MAX = 1;
+constexpr byte SONAR_MAX = 2;
 
 // target types
 constexpr byte TARGET_NAV = 0;
@@ -67,7 +71,7 @@ constexpr float KD = 0.005;
 
 constexpr int TPR = 1200;
 
-constexpr int TOP_SPEED = 45; 	// in ticks per cycle 
+constexpr int TOP_SPEED = 50; 	// in ticks per cycle 
 constexpr int MIN_SPEED = 20;
 constexpr int START_SPEED = 45;
 
@@ -117,6 +121,18 @@ constexpr byte INTERSECTION_TOO_CLOSE = 40;	// allowed range [50,150] for x and 
 constexpr int CORRECT_TOO_FAR = 40;	// correct theta by the distance before all 3 crosses the line
 constexpr float CORRECT_CROSSING_TOLERANCE = 4;	// accepted difference in distance travelled between the 2 halves of crossing a line
 
+// sonar correction
+constexpr float START_PARALLEL_PARK = 0.3;	// start using sonar instead of turning in place at around 17 degrees
+constexpr int COR_TURN = 10; 
+constexpr float DISTANCE_FROM_PULSE = 0.34364261168;
+constexpr float SONAR_DISTANCE_TOLERANCE = 5;
+constexpr byte SONAR_CYCLE = 5;
+constexpr byte WALL_DISTANCE_READY = SONAR_CYCLE + 1;	// signifies wall distances are calculated
+
+constexpr byte FRONT = 0;
+constexpr byte BACK = 1;
+constexpr float WALL_DISTANCE = 20;
+constexpr float DISTANCE_TOO_FAR = 2000;
 
 // playing the ball
 constexpr int PLAY_SPEED = 20;	// how fast to move between game board column locations
@@ -147,10 +163,10 @@ constexpr byte AWAY_FROM_BOARD = 7;
 constexpr byte BALL_LESS = 0;
 constexpr byte JUST_GOT_BALL = 1;
 constexpr byte SECURED_BALL = 15;	// cycles of gate closing
-constexpr byte BALL_TO_BE_DROPPED = 500;	// 5s for it to rise
+constexpr byte BALL_TO_BE_DROPPED = 300;	// 3s for it to rise
 
 
 // sensor bar
 constexpr byte BAR_MAX = 4;
-constexpr int AMBIENT_THRESHOLD = 20;	// offset threshold to be considered not ambient
+constexpr int AMBIENT_THRESHOLD = 30;	// offset threshold to be considered not ambient
 }

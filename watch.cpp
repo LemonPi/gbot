@@ -7,9 +7,12 @@ namespace robot {
 void watch_balls_drop() {
 	if (!layers[LAYER_WATCH].active) return;
 
+	if (!paused) hard_break();	// only watch when stationary
+
 	// check if received ball from rbot
 	// if so, calculate best top slot and go to it (ONLY place where new targets are set)
 	if (received_ball() && !layers[LAYER_PLAY].active) {	// ignore when dropping ball
+		SERIAL_PRINTLN(ball_status);
 		if (ball_status == BALL_LESS) {
 			ball_status = JUST_GOT_BALL;
 		}
@@ -17,7 +20,7 @@ void watch_balls_drop() {
 		else if (ball_status == SECURED_BALL) {
 			pick_best_col();
 
-			SERIAL_PRINT('r');	// received ball
+			SERIAL_PRINT('s');	// secured ball
 			SERIAL_PRINTLN(best_top_slot);
 
 			ball_status = BALL_TO_BE_DROPPED;
@@ -30,6 +33,7 @@ void watch_balls_drop() {
 			// stop watching the game when moving around
 			layers[LAYER_PLAY].active = true;
 			layers[LAYER_WATCH].active = false;
+			return;
 		}
 		else ++ball_status;
 	}
@@ -39,12 +43,14 @@ void watch_balls_drop() {
 	// check if any ball dropped
 	watch_bar();
 
-	SERIAL_PRINT('d');
-	SERIAL_PRINTLN(ball_drops,BIN);
 
 	// check if only 1 ball dropped (check for power of 2; if not then probably false alarm)
-	if (ball_drops != BALL_LESS && ball_drops & (ball_drops - 1) == 0) {
+
+	if ((ball_drops != BALL_LESS) && ((ball_drops & (ball_drops - 1)) == 0)) {
 		
+		SERIAL_PRINT('d');
+		SERIAL_PRINTLN(ball_drops,BIN);
+
 		byte ball_ownership = NO_BALL;
 
 		// if just dropped ball, assume ball was ours
@@ -58,8 +64,8 @@ void watch_balls_drop() {
 		}
 
 		// update slots and top slots
-		for (byte slot = 0; slot < 8; ++slot) {
-			if (played_ball & (1 << slot)) {
+		for (byte slot = 0; slot < GAME_COLS; ++slot) {
+			if (played_ball & (B10000000 >> slot)) {
 
 				slots[slot][top_slots[slot].h] = ball_ownership;
 				++top_slots[slot].h;
@@ -85,8 +91,9 @@ void fire_lasers() {
 
 // updates if slots and whether ball dropped
 void watch_bar() {
-	for (byte b = 0; b < bar_num && BAR_MAX - (b + rel_pos - COL_4) >= 0; ++b) {
-		bool not_ambient = analogRead(bars[b]) - ambient[b] > AMBIENT_THRESHOLD;
+	for (byte b = 0; b < bar_num && (BAR_MAX - (b + rel_pos - COL_4) >= 0); ++b) {
+
+		bool not_ambient = abs(analogRead(bars[b]) - ambient[b]) > AMBIENT_THRESHOLD;
 		// account for relative position (offset by rendezvous position to 0)
 		bitWrite(ball_drops, BAR_MAX - (b + rel_pos - COL_4), not_ambient);
 	}
@@ -115,8 +122,8 @@ void calibrate_bar() {
     unsigned long calibrate_start = millis();
     // calibrate all the pins
     while ((millis() - calibrate_start) < CALLIBRATION_TIME) {
+    	++n;
         for (byte pin = 0; pin < BAR_MAX; ++pin) {
-        	++n;
         	readings[pin] += analogRead(bars[pin]);
         }
     }
@@ -124,6 +131,12 @@ void calibrate_bar() {
     // set threshold to be average (anything threshold away from it is non-ambient)
     for (byte pin = 0; pin < BAR_MAX; ++pin) 
         ambient[pin] = (float)readings[pin] / (float)n;
+
+    for (byte pin = 0; pin < BAR_MAX; ++pin) {
+    	SERIAL_PRINT(ambient[pin]);
+    	SERIAL_PRINT(' ');
+    }
+    SERIAL_PRINT('\n');
 }
 
 bool received_ball() {

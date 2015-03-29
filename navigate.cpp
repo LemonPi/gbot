@@ -29,7 +29,7 @@ void hard_turn() {
 	turn.speed = 0;				// turn in place, no translational velocity
 	if (!turn.active || target == NONE_ACTIVE) { turn.angle = 0; return; }
 
-	double to_turn = targets[target].theta - theta;
+	to_turn = targets[target].theta - theta;
 	// would be faster to turn in the opposite direction 
 	if (to_turn > PI) to_turn -= TWOPI;
 	else if (to_turn < -PI) to_turn += TWOPI;
@@ -91,6 +91,7 @@ void navigate() {
 		if (abs(targets[target].theta - ANY_THETA) > 1 && 	// target isn't just any theta
 			abs(targets[target].theta - theta) > THETA_TOLERANCE) {	// still needs turning
 			layers[LAYER_TURN].active = true;
+			++process_cycles;
 		}
 		// don't need to turn anymore
 		else {
@@ -114,6 +115,16 @@ void navigate() {
 		if (nav.speed < NAV_TURN) nav.speed = NAV_TURN;
 	}
 	last_target_distance = target_distance;
+}
+
+double current_distance() {
+	// accumulate current ticks
+	instant_tick_l = tick_l;
+	instant_tick_r = tick_r;
+	double displacement_l = dir_l * (double)instant_tick_l * MM_PER_TICK_L;
+	double displacement_r = dir_r * (double)instant_tick_r * MM_PER_TICK_R;
+
+	return tot_distance + abs(displacement_l + displacement_r)*0.5;	
 }
 
 // updates target_distance and heading_error

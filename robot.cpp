@@ -24,6 +24,7 @@ int out_l, out_r;			// output values
 
 // internal coordinates
 double x, y, theta, tot_distance;	
+double to_turn;
 
 // waypoint navigation
 Target targets[TARGET_MAX];
@@ -121,7 +122,7 @@ void initialize_robot(byte c1_l, byte c2_l, byte outpin_l, byte c1_r, byte c2_r,
 	out_l = out_r = 100;
 
 	// internal positioning and navigation
-	x = y = theta = tot_distance = 0;
+	x = y = theta = tot_distance = to_turn = 0;
 	target_distance = last_target_distance = heading_error = 0;
 	target = NONE_ACTIVE;
 	process_cycles = 1;
@@ -163,11 +164,11 @@ bool is_intersection(int x, int y) {
 }
 
 void start() {
+	resume_drive();
 	on = true;
 	tick_l = tick_r = 0;
 	if (target != NONE_ACTIVE) layers[LAYER_NAV].active = true;
 	else waypoint();
-	resume_drive();
 	user_start();
 }
 
@@ -180,7 +181,7 @@ void hard_break() {
 	paused = true;
 	l.stop(); 
 	r.stop();
-	SERIAL_PRINTLN('h');
+	SERIAL_PRINTLN('h');	// hard break
 }
 void resume_drive() {
 	paused = false;
@@ -188,6 +189,7 @@ void resume_drive() {
 	else l.backward();
 	if (dir_r == FORWARD) r.forward();
 	else r.backward();
+	SERIAL_PRINTLN('r');	// resume
 }
 
 void pid_control(int tl, int tr) {

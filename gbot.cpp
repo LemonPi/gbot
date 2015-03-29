@@ -34,23 +34,45 @@ int ambient[BAR_MAX];
 byte ball_drops;
 bool played_ball;
 
+// correction (only position)
+int cycles_on_line;
+int counted_lines;
+
+byte trigs[SONAR_MAX];
+byte echos[SONAR_MAX];
+float prev_wall_distance[SONAR_MAX];
+float wall_distance[SONAR_MAX];
+byte sonar_num;
+byte sonar_cycle;
+
 // called inside every go cycle
 void user_behaviours() {
 	play_ball();
+	// if (layers[LAYER_TURN].active && !layers[LAYER_COR].active && abs(to_turn) < START_PARALLEL_PARK) {
+	// 	SERIAL_PRINTLN(to_turn);
+	// 	layers[LAYER_COR].active = true;
+	// }
 }
 
 // control the correction layer
 void user_correct() {
+	// parallel_park();
 	if (layers[LAYER_TURN].active) return;
 	watch_balls_drop();
+	passive_position_correct();
+	hug_wall();
 }
 
 // called after arriving
 void user_waypoint() {
 	// listen to game whenever not moving
-	// if (target == NONE_ACTIVE) {
-	// 	layers[LAYER_WATCH].active = true;
-	// }
+	if (target == NONE_ACTIVE) {
+		stop();
+		// assume rests at 4th pillar (rendezvous)
+		rel_pos = COL_4;
+		hard_break();
+		layers[LAYER_WATCH].active = true;
+	}
 }
 
 
@@ -74,6 +96,11 @@ void initialize_gbot(byte lift, byte ball) {
 	ball_drops = BALL_LESS;
 	played_ball = false;
 
+	cycles_on_line = 0;
+	counted_lines = 0;
+
+	sonar_num = 0;
+	sonar_cycle = 0;
 
 	// initialize game board
 	for (byte col = 0; col < GAME_COLS; ++col) {
@@ -90,6 +117,7 @@ void initialize_gbot(byte lift, byte ball) {
 }
 
 void user_start() {
+	sonar_cycle = 0;
 }
 
 

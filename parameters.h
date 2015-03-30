@@ -41,7 +41,7 @@ constexpr int SENSOR_TIME = 10;  // in ms, 5x faster than navigation cycles
 constexpr byte BOUNDARY_MAX = 0;
 constexpr byte TARGET_MAX = 10;
 constexpr byte SENSOR_MAX = 1;
-constexpr byte SONAR_MAX = 2;
+constexpr byte SONAR_MAX = 1;
 
 // target types
 constexpr byte TARGET_NAV = 0;
@@ -125,18 +125,18 @@ constexpr float CORRECT_CROSSING_TOLERANCE = 4;	// accepted difference in distan
 constexpr float START_PARALLEL_PARK = 0.3;	// start using sonar instead of turning in place at around 17 degrees
 constexpr int COR_TURN = 10; 
 constexpr float DISTANCE_FROM_PULSE = 0.34364261168;
-constexpr float SONAR_DISTANCE_TOLERANCE = 5;
 constexpr byte SONAR_CYCLE = 5;
 constexpr byte WALL_DISTANCE_READY = SONAR_CYCLE + 1;	// signifies wall distances are calculated
 
-constexpr byte FRONT = 0;
-constexpr byte BACK = 1;
-constexpr float WALL_DISTANCE = 20;
+// constexpr byte FRONT = 0;
+constexpr byte BACK = 0;
+constexpr float WALL_DISTANCE = 40;
+constexpr float SONAR_DISTANCE_TOLERANCE = 5;
 constexpr float DISTANCE_TOO_FAR = 2000;
 
 // playing the ball
 constexpr int PLAY_SPEED = 20;	// how fast to move between game board column locations
-constexpr int RENDEZVOUS_X = 1400;
+constexpr int RENDEZVOUS_X = 1650;
 constexpr int RENDEZVOUS_Y = 800;
 constexpr int RENDEZVOUS_CLOSE = 40;	// within 4cm of rendezvous
 constexpr byte GAME_COLS = 7;
@@ -148,6 +148,7 @@ constexpr byte THREE_IN_ROW = 3;
 constexpr byte NO_BALL  = 0;
 constexpr byte OUR_BALL = 1;
 constexpr byte THEIR_BALL = 2;
+constexpr unsigned long DROPPED_TOO_RECENTLY = 10000;	// assume no one plays balls within 10s
 
 // relative positions
 constexpr byte COL_1 = 0;
@@ -165,8 +166,8 @@ constexpr byte JUST_GOT_BALL = 1;
 constexpr byte SECURED_BALL = 15;	// cycles of gate closing
 constexpr byte BALL_TO_BE_DROPPED = 300;	// 3s for it to rise
 
-
 // sensor bar
-constexpr byte BAR_MAX = 4;
+constexpr byte BAR_MAX = 7;
 constexpr int AMBIENT_THRESHOLD = 30;	// offset threshold to be considered not ambient
+constexpr byte REAL_DROP = 3;	// consecutive cycles of detecting a ball drop 
 }

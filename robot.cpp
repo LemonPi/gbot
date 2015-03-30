@@ -10,6 +10,7 @@ volatile int tick_r = 0;		// time between ticks
 int instant_tick_l, instant_tick_r;
 // subsumption layers
 Layer layers[LAYER_NUM];
+byte active_layer;
 
 // avoid boundaries (point boundaries)
 Boundary boundaries[BOUNDARY_MAX];
@@ -152,6 +153,7 @@ void initialize_robot(byte c1_l, byte c2_l, byte outpin_l, byte c1_r, byte c2_r,
 
 	// bottom wait layer, always active, 0 speed
 	layers[LAYER_WAIT].active = true;
+	active_layer = LAYER_WAIT;
 }
 
 void clamp(int& parameter, int low, int high) {
@@ -220,18 +222,17 @@ void pid_control(int tl, int tr) {
 void arbitrate() {
 	// loop through layers, pass highest priority (first) requested behaviour to motor control	
 	for (byte l = 0; l < LAYER_NUM; ++l) {
-		if (l == LAYER_WAIT) stop();	
+		if (l == LAYER_WAIT) {active_layer = l; stop();}	
 		else if (layers[l].active) {
 			motor_control(l);
+			active_layer = l;
 			return;
 		}	
 	}
 }
 
-int get_active_layer() {
-	for (byte l = 0; l < LAYER_NUM; ++l)
-		if (layers[l].active) return l;
-	return -1;		
+byte get_active_layer() {
+	return active_layer;		
 }
 
 // updates internal position

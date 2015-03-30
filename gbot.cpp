@@ -24,15 +24,18 @@ bool streak = true;
 byte prev_slot = OUR_BALL;
 int score = 0;
 
-byte rel_pos;
+int rel_pos;
 
 // sensor bar
 byte bar_num;	// number of bar sensors
 byte lasers[BAR_MAX];
 byte bars[BAR_MAX];
 int ambient[BAR_MAX];
-byte ball_drops;
+byte ball_drops, prev_ball_drops;
+byte consecutive_drops;
 bool played_ball;
+unsigned long last_dropped_ours, last_dropped_theirs;
+unsigned long last_calibrate_time;
 
 // correction (only position)
 int cycles_on_line;
@@ -45,13 +48,32 @@ float wall_distance[SONAR_MAX];
 byte sonar_num;
 byte sonar_cycle;
 
+bool ready_to_hug_wall() {
+	// only hug wall when moving forward/backward while playing or getting to the board
+	return active_layer == LAYER_PLAY || 
+		(!active_layer == LAYER_WATCH && targets[target].x == RENDEZVOUS_X && targets[target].y == RENDEZVOUS_Y);
+}
+
 // called inside every go cycle
 void user_behaviours() {
 	play_ball();
-	// if (layers[LAYER_TURN].active && !layers[LAYER_COR].active && abs(to_turn) < START_PARALLEL_PARK) {
-	// 	SERIAL_PRINTLN(to_turn);
-	// 	layers[LAYER_COR].active = true;
-	// }
+	if (ready_to_hug_wall()) {
+		if (sonar_cycle == WALL_DISTANCE_READY) {
+			hug_wall();
+			sonar_cycle = 0;
+		}
+	}
+	else {
+		// reset cycles after hugging wall
+		sonar_cycle = 0;
+	}
+
+	if (active_layer == LAYER_WATCH && millis() - last_calibrate_time > CALLIBRATION_TIME*4) {
+		SERIAL_PRINTLN("CB");
+		calibrate_bar(2000);
+		last_calibrate_time = millis();
+		SERIAL_PRINT('\n');
+	}
 }
 
 // control the correction layer
@@ -60,14 +82,13 @@ void user_correct() {
 	if (layers[LAYER_TURN].active) return;
 	watch_balls_drop();
 	passive_position_correct();
-	hug_wall();
+	if (ready_to_hug_wall()) touch_wall();
 }
 
 // called after arriving
 void user_waypoint() {
 	// listen to game whenever not moving
 	if (target == NONE_ACTIVE) {
-		stop();
 		// assume rests at 4th pillar (rendezvous)
 		rel_pos = COL_4;
 		hard_break();
@@ -94,7 +115,10 @@ void initialize_gbot(byte lift, byte ball) {
 
 	bar_num = 0;	// number of bar sensors
 	ball_drops = BALL_LESS;
+	consecutive_drops = 0;
 	played_ball = false;
+	last_dropped_ours = last_dropped_theirs = 0;
+	last_calibrate_time = 0;
 
 	cycles_on_line = 0;
 	counted_lines = 0;

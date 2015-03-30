@@ -9,11 +9,81 @@ void watch_balls_drop() {
 
 	if (!paused) hard_break();	// only watch when stationary
 
+	fire_lasers();
+	// check if any ball dropped
+	watch_bar();
+
+	// check if only 1 ball dropped (check for power of 2; if not then probably false alarm)
+	if ((ball_drops != BALL_LESS) && ((ball_drops & (ball_drops - 1)) == 0)) {
+		// need to be observe dropping in the same column for 3 cycles
+		if (ball_drops & prev_ball_drops) ++consecutive_drops;
+		else consecutive_drops = 0;
+
+		SERIAL_PRINT('d');
+		SERIAL_PRINTLN(ball_drops,BIN);
+
+		if (consecutive_drops == REAL_DROP) {
+			update_game_board();
+		}
+	}
+	else consecutive_drops = 0;
+
+	// drop_off_ball();
+
+}
+
+void update_game_board() {
+	// normally assume dropped by opponent
+	byte ball_ownership = THEIR_BALL;
+	// if just dropped ball, assume ball was ours
+	if (ball_status > BALL_LESS) {	// during the count down from BALL_TO_BE_DROPPED
+		if (millis() - last_dropped_ours < DROPPED_TOO_RECENTLY) return;
+		played_ball = true;
+		ball_ownership = OUR_BALL;
+		last_dropped_ours = millis();
+	}
+	else {
+		// false alarm if dropped too recently
+		if (millis() - last_dropped_theirs < DROPPED_TOO_RECENTLY) return;
+		else last_dropped_theirs = millis();
+	}
+
+
+	// update slots and top slots
+	for (byte slot = 0; slot < GAME_COLS; ++slot) {
+		if (ball_drops & (B1000000 >> slot)) {
+
+			slots[slot][top_slots[slot].h] = ball_ownership;
+			++top_slots[slot].h;
+			// might have to REMOVE prints as it's serial printing inside loop
+			if (ball_ownership == OUR_BALL) {SERIAL_PRINT('O');}
+			else {SERIAL_PRINT('T');}
+			SERIAL_PRINT(slot);
+			SERIAL_PRINT(' ');
+			SERIAL_PRINTLN(top_slots[slot].h);
+			return;
+		}
+	}
+
+	SERIAL_PRINT("----");
+	for (byte slot = 0; slot < GAME_COLS; ++slot) {
+		for (int height = GAME_HEIGHT-1; height >= 0; --height) {
+			byte this_ball = slots[slot][height];
+			if (this_ball == NO_BALL) {SERIAL_PRINT("  ");}
+			else if (this_ball == OUR_BALL) {SERIAL_PRINT("O ");}
+			else {SERIAL_PRINT("T ");}
+		}
+		SERIAL_PRINT('\n');
+	}
+}
+
+void drop_off_ball() {
 	// check if received ball from rbot
 	// if so, calculate best top slot and go to it (ONLY place where new targets are set)
 	if (received_ball() && !layers[LAYER_PLAY].active) {	// ignore when dropping ball
 		SERIAL_PRINTLN(ball_status);
 		if (ball_status == BALL_LESS) {
+			SERIAL_PRINTLN("RB");
 			ball_status = JUST_GOT_BALL;
 		}
 		// enough cycles, assume secured
@@ -24,6 +94,7 @@ void watch_balls_drop() {
 			SERIAL_PRINTLN(best_top_slot);
 
 			ball_status = BALL_TO_BE_DROPPED;
+			// at this point ball has not been played
 			played_ball = false;
 
 			// go to top best slot
@@ -37,50 +108,6 @@ void watch_balls_drop() {
 		}
 		else ++ball_status;
 	}
-
-
-	fire_lasers();
-	// check if any ball dropped
-	watch_bar();
-
-
-	// check if only 1 ball dropped (check for power of 2; if not then probably false alarm)
-
-	if ((ball_drops != BALL_LESS) && ((ball_drops & (ball_drops - 1)) == 0)) {
-		
-		SERIAL_PRINT('d');
-		SERIAL_PRINTLN(ball_drops,BIN);
-
-		byte ball_ownership = NO_BALL;
-
-		// if just dropped ball, assume ball was ours
-		if (ball_status > BALL_LESS) {	// during the count down from BALL_TO_BE_DROPPED
-			played_ball = true;
-			ball_ownership = OUR_BALL;
-		}
-		// at any other time means dropped by opponent
-		else {
-			ball_ownership = THEIR_BALL;
-		}
-
-		// update slots and top slots
-		for (byte slot = 0; slot < GAME_COLS; ++slot) {
-			if (played_ball & (B10000000 >> slot)) {
-
-				slots[slot][top_slots[slot].h] = ball_ownership;
-				++top_slots[slot].h;
-				// might have to REMOVE prints as it's serial printing inside loop
-				if (ball_ownership == OUR_BALL) {SERIAL_PRINT('O');}
-				else {SERIAL_PRINT('T');}
-				SERIAL_PRINT(slot);
-				SERIAL_PRINT(' ');
-				SERIAL_PRINTLN(top_slots[slot].h);
-				break;
-			}
-		}
-
-	}
-
 }
 
 void fire_lasers() {
@@ -91,11 +118,14 @@ void fire_lasers() {
 
 // updates if slots and whether ball dropped
 void watch_bar() {
-	for (byte b = 0; b < bar_num && (BAR_MAX - (b + rel_pos - COL_4) >= 0); ++b) {
+	prev_ball_drops = ball_drops;
+	for (int b = COL_4 - rel_pos; b < bar_num && (COL_7 - (b + rel_pos - COL_4) >= 0); ++b) {
 
-		bool not_ambient = abs(analogRead(bars[b]) - ambient[b]) > AMBIENT_THRESHOLD;
+		bool not_ambient;
+		if (b >= 0) not_ambient = abs(analogRead(bars[b]) - ambient[b]) > AMBIENT_THRESHOLD;
+		else not_ambient = 0;
 		// account for relative position (offset by rendezvous position to 0)
-		bitWrite(ball_drops, BAR_MAX - (b + rel_pos - COL_4), not_ambient);
+		bitWrite(ball_drops, COL_7 - (b + rel_pos - COL_4), not_ambient);
 	}
 }
 
@@ -108,7 +138,7 @@ int add_bar_sensor(byte sensor_pin, byte laser_pin) {
 	return bar_num;
 }
 
-void calibrate_bar() {
+void calibrate_bar(unsigned long duration) {
 	if (bar_num != BAR_MAX) {
 		SERIAL_PRINT("Not all bar sensors added: "); 
 		SERIAL_PRINTLN(bar_num); 
@@ -121,7 +151,7 @@ void calibrate_bar() {
 
     unsigned long calibrate_start = millis();
     // calibrate all the pins
-    while ((millis() - calibrate_start) < CALLIBRATION_TIME) {
+    while ((millis() - calibrate_start) < duration) {
     	++n;
         for (byte pin = 0; pin < BAR_MAX; ++pin) {
         	readings[pin] += analogRead(bars[pin]);

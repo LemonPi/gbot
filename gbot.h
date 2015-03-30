@@ -25,7 +25,7 @@ extern byte continuous_ours;
 extern byte continuous_theirs;
 extern bool streak;
 extern byte prev_slot;
-extern byte rel_pos;
+extern int rel_pos;
 extern int score;
 
 
@@ -34,9 +34,11 @@ extern byte bar_num;	// number of bar sensors
 extern byte lasers[BAR_MAX];
 extern byte bars[BAR_MAX];
 extern int ambient[BAR_MAX];
-extern byte ball_drops;
+extern byte ball_drops, prev_ball_drops;
+extern byte consecutive_drops;
 extern bool played_ball;
-
+extern unsigned long last_dropped_ours, last_dropped_theirs;
+extern unsigned long last_calibrate_time;
 
 // correction
 extern int cycles_on_line;
@@ -67,12 +69,17 @@ void watch_balls_drop();
 void fire_lasers();
 void watch_bar();
 int add_bar_sensor(byte sensor_pin, byte laser_pin);
-void calibrate_bar();
+void calibrate_bar(unsigned long duration = CALLIBRATION_TIME);
 bool received_ball();
+void drop_off_ball();
+void update_game_board();
 
 // user correct
 byte add_sonar(byte t, byte e);
 void passive_position_correct();
 void parallel_park();
+void touch_wall();
+void hug_wall();
+bool ready_to_hug_wall();
 
 }

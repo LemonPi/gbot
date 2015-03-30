@@ -69,7 +69,7 @@ bool on_line(byte pin) {
 // turn on an indicator (assuming digital) if sensor detects below threshold
 void indicate_sensors() {
 	prev_on_lines = on_lines;
-    for (byte i = 0; i < SENSOR_MAX; ++i) {
+    for (byte i = 0; i < sensor_num; ++i) {
     	// clear ith bit or set ith bit
     	if (analogRead(sensors[i]) > thresholds[i]) {on_lines |= (1 << i); digitalWrite(indicators[i],HIGH);}
     	else										{on_lines &= ~(1 << i); digitalWrite(indicators[i],LOW);}
@@ -101,6 +101,7 @@ void calibrate() {
     // set threshold to be average (anything below is dark, anything above is bright)
     for (byte pin = 0; pin < SENSOR_MAX; ++pin) 
         thresholds[pin] = (lows[pin] + highs[pin]) / THRESHOLD_TOLERANCE;
+    SERIAL_PRINTLN('c');
 }
 
 }

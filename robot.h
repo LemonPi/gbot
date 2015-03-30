@@ -26,6 +26,7 @@ extern volatile int tick_l, tick_r;		// time between ticks
 extern int instant_tick_l, instant_tick_r;
 // subsumption layers
 extern Layer layers[LAYER_NUM];
+extern byte active_layer;
 
 // avoid boundaries (point boundaries)
 extern Boundary boundaries[BOUNDARY_MAX];
@@ -112,7 +113,7 @@ void stop();
 void hard_break();
 void resume_drive();
 
-int get_active_layer();
+byte get_active_layer();
 
 void set_coordinate(double tx, double ty, double td = 0.0);
 void set_drive(bool mode);

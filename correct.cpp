@@ -52,8 +52,15 @@ void touch_wall() {
 	}
 }
 
+void reset_wall_distance() {
+	sonar_cycle = 0;
+	for (byte sonar = 0; sonar < sonar_num; ++sonar) 
+		prev_wall_distance[sonar] = 0;
+}
+
 // modify the angle of the top layer to turn away or towards a wall
 void hug_wall() {
+	sonar_cycle = 0;
 	// overturned, turn in other direction "leaky integrator"
 	float distance_offset = wall_distance[SIDE_FRONT] - wall_distance[SIDE_BACK];
 	float theta_offset = atan2(distance_offset, SIDE_SONAR_DISTANCE);

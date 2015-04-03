@@ -9,13 +9,13 @@ void turn_to_watch() {
 	Layer& watch = layers[LAYER_WATCH];
 	float to_turn = HALFPI - theta;
 	watch.speed = 0;
-	if (abs(to_turn) < THETA_TOLERANCE && !paused) {
-		hard_break();
+	if (abs(to_turn) < THETA_TOLERANCE) {
+		if (!paused) hard_break(LAYER_WATCH);
 		watch.angle = 0;
 		return;
 	}
 	else {
-		if (paused) resume_drive();
+		if (paused) resume_drive(LAYER_WATCH);
 		if (to_turn > 0) watch.angle = COR_TURN;
 		else watch.angle = -COR_TURN;
 	}
@@ -24,7 +24,7 @@ void turn_to_watch() {
 void watch_balls_drop() {
 	if (!layers[LAYER_WATCH].active) return;
 
-	if (active_layer == LAYER_WATCH && millis() - last_calibrate_time > CALLIBRATION_TIME*4) {
+	if (paused && active_layer == LAYER_WATCH && millis() - last_calibrate_time > CALLIBRATION_TIME*4) {
 		SERIAL_PRINTLN("CB");
 		calibrate_bar(2000);
 		last_calibrate_time = millis();
@@ -82,7 +82,7 @@ void update_game_board() {
 			SERIAL_PRINT(slot);
 			SERIAL_PRINT(' ');
 			SERIAL_PRINTLN(top_slots[slot].h);
-			return;
+			break;
 		}
 	}
 

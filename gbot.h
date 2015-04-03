@@ -87,5 +87,6 @@ void parallel_park();
 void touch_wall();
 void hug_wall();
 bool ready_to_hug_wall();
+void reset_wall_distance();
 
 }

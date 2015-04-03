@@ -155,7 +155,7 @@ void initialize_robot(byte c1_l, byte c2_l, byte outpin_l, byte c1_r, byte c2_r,
 
 	// bottom wait layer, always active, 0 speed
 	layers[LAYER_WAIT].active = true;
-	active_layer = LAYER_WAIT;
+	active_layer = 0;
 }
 
 void clamp(int& parameter, int low, int high) {
@@ -167,8 +167,8 @@ bool is_intersection(int x, int y) {
 	return (x % GRID_WIDTH) & (y % GRID_WIDTH) == 0;
 }
 
-void start() {
-	resume_drive();
+void start(byte layer) {
+	resume_drive(layer);
 	on = true;
 	tick_l = tick_r = 0;
 	if (target != NONE_ACTIVE) layers[LAYER_NAV].active = true;
@@ -176,24 +176,26 @@ void start() {
 	user_start();
 }
 
-void stop() {
+void stop(byte layer) {
 	on = false;
-	hard_break();
+	hard_break(layer);
 }
 
-void hard_break() {	
+void hard_break(byte layer) {	
 	paused = true;
 	l.stop(); 
 	r.stop();
-	SERIAL_PRINTLN('h');	// hard break
+	SERIAL_PRINT('h');	// hard break
+	SERIAL_PRINTLN(layer);
 }
-void resume_drive() {
+void resume_drive(byte layer) {
 	paused = false;
 	if (dir_l == FORWARD) l.forward();
 	else l.backward();
 	if (dir_r == FORWARD) r.forward();
 	else r.backward();
-	SERIAL_PRINTLN('r');	// resume
+	SERIAL_PRINT('r');	// resume
+	SERIAL_PRINTLN(layer);	// resume
 }
 
 void pid_control(int tl, int tr) {
@@ -224,7 +226,7 @@ void pid_control(int tl, int tr) {
 void arbitrate() {
 	// loop through layers, pass highest priority (first) requested behaviour to motor control	
 	for (byte l = 0; l < LAYER_NUM; ++l) {
-		if (l == LAYER_WAIT) {active_layer = l; stop();}	
+		if (l == LAYER_WAIT && !paused) {active_layer = l; hard_break(LAYER_WAIT);}	
 		else if (layers[l].active) {
 			motor_control(l);
 			active_layer = l;
@@ -239,6 +241,13 @@ byte get_active_layer() {
 
 bool allowed_layer(byte layer) {
 	return allowed_layers & (1 << layer);
+}
+void enable_layer(byte layer) {
+	bitSet(allowed_layers, layer);
+}
+void disable_layer(byte layer) {
+	layers[layer].active = false;
+	bitClear(allowed_layers, layer);
 }
 
 // updates internal position

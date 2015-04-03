@@ -19,7 +19,7 @@ void play_ball() {
 		int heading = square_heading();
 		if (heading != DIR_RIGHT) return;
 
-		if (paused) resume_drive();
+		if (paused) resume_drive(LAYER_PLAY);
 
 		// only need to consider heading right
 		if (targets[target].y > y) play.speed = PLAY_SPEED;
@@ -44,7 +44,7 @@ void play_ball() {
 				// listen for self drop
 				layers[LAYER_WATCH].active = true;
 				ball_dropped = false;
-				hard_break();
+				hard_break(LAYER_PLAY);
 			}
 		}
 	}

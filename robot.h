@@ -27,6 +27,7 @@ extern int instant_tick_l, instant_tick_r;
 // subsumption layers
 extern Layer layers[LAYER_NUM];
 extern byte active_layer;
+extern byte allowed_layers;
 
 // avoid boundaries (point boundaries)
 extern Boundary boundaries[BOUNDARY_MAX];
@@ -52,7 +53,7 @@ extern int process_cycles;
 // motor control output hbridges
 extern Hbridge l, r;		
 // 1 for forward, -1 for backward
-extern int dir_l, dir_r;
+extern char dir_l, dir_r;
 
 // line detection for navigation correction
 extern unsigned long time_prev_sensors;
@@ -114,6 +115,7 @@ void hard_break();
 void resume_drive();
 
 byte get_active_layer();
+bool allowed_layer(byte layer);
 
 void set_coordinate(double tx, double ty, double td = 0.0);
 void set_drive(bool mode);

@@ -33,15 +33,16 @@ constexpr byte LAYER_NAV = 4;
 constexpr byte LAYER_WATCH = 5;
 constexpr byte LAYER_WAIT = 6;
 constexpr byte LAYER_GET = 7;	// non-existent layer
+constexpr byte ALL_ALLOWED = B11111111;
 
-constexpr int CYCLE_TIME = 50; 	// in ms
+constexpr int CYCLE_TIME = 20; 	// in ms
 constexpr int SENSOR_TIME = 10;  // in ms, 5x faster than navigation cycles
 
 // maximum array bounds
 constexpr byte BOUNDARY_MAX = 0;
 constexpr byte TARGET_MAX = 10;
 constexpr byte SENSOR_MAX = 1;
-constexpr byte SONAR_MAX = 1;
+constexpr byte SONAR_MAX = 2;
 
 // target types
 constexpr byte TARGET_NAV = 0;
@@ -50,14 +51,21 @@ constexpr byte TARGET_PLAY = 2;
 constexpr byte TARGET_WATCH = 3;
 constexpr byte TARGET_GET = 4;
 
-// sensor indices
+// sensor indices and general direction
 constexpr byte CENTER = B0001;		// center sensor is sensor 0
+constexpr byte RIGHT = 	B0010;
+constexpr byte LEFT = 	B0100;
+constexpr byte UP = 	B1000;
 constexpr float SIDE_SENSOR_DISTANCE = 43.5;
 
 
 // PID speed control
 constexpr int FORWARD = 1;
 constexpr int BACKWARD = -1;
+constexpr char START_DRIFT = 1;	// how many cycles to account for drifting by using previous direction
+constexpr char NO_DRIFT = 0;
+constexpr int DRIFT_SPEED = 15;	// how fast of a speed change to start accounting for drift
+
 
 constexpr float BASE_WIDTH = 99.0;
 constexpr float TURNING_RADIUS = BASE_WIDTH;
@@ -118,8 +126,6 @@ constexpr int DIR_BACK = 180;
 
 // correction
 constexpr byte INTERSECTION_TOO_CLOSE = 40;	// allowed range [50,150] for x and y for a correct
-constexpr int CORRECT_TOO_FAR = 40;	// correct theta by the distance before all 3 crosses the line
-constexpr float CORRECT_CROSSING_TOLERANCE = 4;	// accepted difference in distance travelled between the 2 halves of crossing a line
 
 // sonar correction
 constexpr float START_PARALLEL_PARK = 0.3;	// start using sonar instead of turning in place at around 17 degrees
@@ -127,28 +133,50 @@ constexpr int COR_TURN = 10;
 constexpr float DISTANCE_FROM_PULSE = 0.34364261168;
 constexpr byte SONAR_CYCLE = 5;
 constexpr byte WALL_DISTANCE_READY = SONAR_CYCLE + 1;	// signifies wall distances are calculated
+constexpr int GAME_BOARD_X = 1790;
+constexpr byte RELIABLE_CORRECT_CYCLE = 2;	// how many correction cycles before considered stable value 
 
-// constexpr byte FRONT = 0;
-constexpr byte BACK = 0;
-constexpr float WALL_DISTANCE = 40;
+
+constexpr byte SIDE_FRONT = 0;
+constexpr byte SIDE_BACK = 1;
+constexpr byte FRONT = 2;
+constexpr float WALL_DISTANCE = 50;		// ideally 5cm away
 constexpr float SONAR_DISTANCE_TOLERANCE = 5;
-constexpr float DISTANCE_TOO_FAR = 2000;
+constexpr float SONAR_CHANGE_ALLOWANCE = 20;	// allow a difference of 10mm from current to previous reading
+constexpr float SONAR_TOO_FAR = 2000;		// from sonar to wall
+constexpr float SONAR_CLOSE_ENOUGH = 200;	// from center of the robot to the wall
+constexpr int SONAR_THETA_MAXIMUM = 25;	// cannot reliably correct beyond 25 degrees
+
+// board statuses
+constexpr byte STARTING_LOCATION = 0;
+constexpr byte LEFT_WALL = 1;
+constexpr byte GAME_WALL = 2;
+constexpr byte GOING_TO_PLAY = 3;
+constexpr byte PLAYING = 4;
 
 // playing the ball
 constexpr int PLAY_SPEED = 20;	// how fast to move between game board column locations
 constexpr int RENDEZVOUS_X = 1650;
 constexpr int RENDEZVOUS_Y = 800;
-constexpr int RENDEZVOUS_CLOSE = 40;	// within 4cm of rendezvous
+constexpr int RENDEZVOUS_CLOSE = 10;	// within 1cm of rendezvous
 constexpr byte GAME_COLS = 7;
 constexpr byte GAME_HEIGHT = 6;	// 6 balls max
 constexpr byte SCORE_DEPTH = 3;	// only consider 3 away from the ball
 constexpr byte TWO_IN_ROW = 2;
 constexpr byte THREE_IN_ROW = 3;
+constexpr int LIFT_SPEED = 160;
+
 
 constexpr byte NO_BALL  = 0;
 constexpr byte OUR_BALL = 1;
 constexpr byte THEIR_BALL = 2;
 constexpr unsigned long DROPPED_TOO_RECENTLY = 10000;	// assume no one plays balls within 10s
+
+// aligning to wall
+constexpr int SIDE_FRONT_OFFSET = 2;
+constexpr float CENTER_TO_SONAR_DISTANCE = 74.5;
+constexpr float SIDE_FRONT_BACK_RATIO = 54/(54+88);
+constexpr int SIDE_SONAR_DISTANCE = 54+88;
 
 // relative positions
 constexpr byte COL_1 = 0;
@@ -159,6 +187,8 @@ constexpr byte COL_5 = 4;
 constexpr byte COL_6 = 5;
 constexpr byte COL_7 = 6;
 constexpr byte AWAY_FROM_BOARD = 7;
+constexpr byte COL_CLOSE = 10;
+constexpr byte COL_WIDTH = 45;
 
 // ball statuses
 constexpr byte BALL_LESS = 0;
@@ -170,4 +200,5 @@ constexpr byte BALL_TO_BE_DROPPED = 300;	// 3s for it to rise
 constexpr byte BAR_MAX = 7;
 constexpr int AMBIENT_THRESHOLD = 30;	// offset threshold to be considered not ambient
 constexpr byte REAL_DROP = 3;	// consecutive cycles of detecting a ball drop 
+
 }

@@ -10,7 +10,11 @@ int add_target(double tx, double ty, double td, byte type, bool rad) {
 	if (target + 1 >= TARGET_MAX) return -1;
 
 	if (td != ANY_THETA) {
-		if (!rad) td *= DEGS;
+		if (!rad) {
+			td *= DEGS;
+			if (td < -PI) td += TWOPI;
+			else if (td > PI) td -= TWOPI;
+		}
 	}
 	++target;
 	targets[target].x = tx;
@@ -69,7 +73,8 @@ void navigate() {
 			abs(boundaries[active_boundary].theta - heading_error) > 0.3)) &&
 		target_distance > TARGET_IMMEDIATE &&
 		drive == AUTOMATIC &&
-		abs(heading_error) > CAN_TURN_IN_PLACE) { 	// need large enough of a turn)
+		abs(heading_error) > CAN_TURN_IN_PLACE &&
+		allowed_layer(LAYER_TURN)) { 	// need large enough of a turn)
 
 		// push temporary targets (stationary, but turning)
 		add_target(x, y, heading_error + theta, TARGET_TURN, true);
@@ -82,14 +87,15 @@ void navigate() {
 	}
 
 	// arrived at target (can't get any closer presumably)
-	else if (((target_distance < TARGET_IMMEDIATE) ||
-			 ((target_distance < TARGET_CIRCLE) && (target_distance > last_target_distance)))) {
+	else if ((target_distance < TARGET_IMMEDIATE) ||
+			 ((target_distance < TARGET_CIRCLE) && (target_distance > last_target_distance))) {
 
 		SERIAL_PRINTLN('c');
 		nav.active = false;	// no longer need to navigate	
 
 		if (abs(targets[target].theta - ANY_THETA) > 1 && 	// target isn't just any theta
-			abs(targets[target].theta - theta) > THETA_TOLERANCE) {	// still needs turning
+			abs(targets[target].theta - theta) > THETA_TOLERANCE &&
+			allowed_layer(LAYER_TURN)) {	// still needs turning
 			layers[LAYER_TURN].active = true;
 			++process_cycles;
 		}

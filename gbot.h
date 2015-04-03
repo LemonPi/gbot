@@ -37,12 +37,16 @@ extern int ambient[BAR_MAX];
 extern byte ball_drops, prev_ball_drops;
 extern byte consecutive_drops;
 extern bool played_ball;
+extern bool jammed;
 extern unsigned long last_dropped_ours, last_dropped_theirs;
 extern unsigned long last_calibrate_time;
 
 // correction
 extern int cycles_on_line;
 extern int counted_lines;
+extern byte board_status;
+extern byte corrected_y;
+
 // sonar
 extern byte trigs[SONAR_MAX];
 extern byte echos[SONAR_MAX];
@@ -52,12 +56,14 @@ extern byte sonar_num;
 extern byte sonar_cycle;
 
 
+
 void initialize_gbot(byte lift_p, byte ball_p);
 
 
 // play module (deposit ball)
 void play_ball();
 void lift_ball();
+void lift_ball_harder();
 void stop_lift_ball();
 int score_top_slot(byte top);
 void reset_run();

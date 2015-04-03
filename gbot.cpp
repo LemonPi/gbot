@@ -34,12 +34,16 @@ int ambient[BAR_MAX];
 byte ball_drops, prev_ball_drops;
 byte consecutive_drops;
 bool played_ball;
+bool jammed;
 unsigned long last_dropped_ours, last_dropped_theirs;
 unsigned long last_calibrate_time;
 
 // correction (only position)
 int cycles_on_line;
 int counted_lines;
+byte board_status;
+byte corrected_y;
+
 
 byte trigs[SONAR_MAX];
 byte echos[SONAR_MAX];
@@ -49,14 +53,60 @@ byte sonar_num;
 byte sonar_cycle;
 
 bool ready_to_hug_wall() {
-	// only hug wall when moving forward/backward while playing or getting to the board
-	return active_layer == LAYER_PLAY || 
-		(!active_layer == LAYER_WATCH && targets[target].x == RENDEZVOUS_X && targets[target].y == RENDEZVOUS_Y);
+	if (active_layer == LAYER_PLAY) return true;
+	else if (board_status == STARTING_LOCATION) return false;
+	// only hug wall when close to a wall
+	int approx_heading = square_heading();
+	// sonar can't correct beyond a certain angle
+	if (abs(approx_heading - theta*RADS) > SONAR_THETA_MAXIMUM) return false; 
+	// heading left, x should be close to 0
+	else if ((approx_heading == DIR_LEFT && x < SONAR_CLOSE_ENOUGH) ||
+	// heading up, y should be close to 0
+	(approx_heading == DIR_UP && y < SONAR_CLOSE_ENOUGH) ||
+	// heading right, x should be close to GAME_BOARD_X
+	(approx_heading == DIR_RIGHT && GAME_BOARD_X - x < SONAR_CLOSE_ENOUGH)) return true;
+	return false; 
 }
 
 // called inside every go cycle
 void user_behaviours() {
 	play_ball();
+	// reset wall distances
+	if (active_layer == LAYER_TURN && prev_wall_distance[0] != 0)
+		for (byte sonar = 0; sonar < sonar_num; ++sonar) prev_wall_distance[sonar] = 0;
+	// first reaching the left wall
+	if (board_status == STARTING_LOCATION && y - 0 < SONAR_CLOSE_ENOUGH) {
+		board_status = LEFT_WALL;
+		SERIAL_PRINTLN("BL");
+	}
+	else if (board_status == LEFT_WALL && GAME_BOARD_X - x < SONAR_CLOSE_ENOUGH) {
+		// calibrate y position before turning
+		if (corrected_y >= RELIABLE_CORRECT_CYCLE) {
+			board_status = GAME_WALL;
+			add_target(x, y, 90, TARGET_TURN);
+			SERIAL_PRINTLN("BG");
+		}
+	}
+	// don't turn in place when you're too close to the board
+	else if (board_status == GAME_WALL && HALFPI - theta < THETA_TOLERANCE) {
+		bitClear(allowed_layers, LAYER_TURN);
+		layers[LAYER_TURN].active = false;
+		board_status = GOING_TO_PLAY;
+		// go to rendezvous location
+		add_target(RENDEZVOUS_X, RENDEZVOUS_Y, 90, TARGET_WATCH);
+		SERIAL_PRINTLN("BGP");
+	}
+	// stop navigating when rendezvous reached the first time
+	else if (board_status == GOING_TO_PLAY && RENDEZVOUS_Y - y < RENDEZVOUS_CLOSE) {
+		bitClear(allowed_layers, LAYER_NAV);
+		layers[LAYER_NAV].active = false;
+		layers[LAYER_WATCH].active = true;
+		board_status = PLAYING;
+		// start watching
+		SERIAL_PRINTLN("BP");
+	}
+
+
 	if (ready_to_hug_wall()) {
 		if (sonar_cycle == WALL_DISTANCE_READY) {
 			hug_wall();
@@ -65,14 +115,7 @@ void user_behaviours() {
 	}
 	else {
 		// reset cycles after hugging wall
-		sonar_cycle = 0;
-	}
-
-	if (active_layer == LAYER_WATCH && millis() - last_calibrate_time > CALLIBRATION_TIME*4) {
-		SERIAL_PRINTLN("CB");
-		calibrate_bar(2000);
-		last_calibrate_time = millis();
-		SERIAL_PRINT('\n');
+		if (sonar_cycle == WALL_DISTANCE_READY) sonar_cycle = 0;
 	}
 }
 
@@ -88,7 +131,7 @@ void user_correct() {
 // called after arriving
 void user_waypoint() {
 	// listen to game whenever not moving
-	if (target == NONE_ACTIVE) {
+	if (board_status == PLAYING) {
 		// assume rests at 4th pillar (rendezvous)
 		rel_pos = COL_4;
 		hard_break();
@@ -117,11 +160,14 @@ void initialize_gbot(byte lift, byte ball) {
 	ball_drops = BALL_LESS;
 	consecutive_drops = 0;
 	played_ball = false;
+	jammed = false;
 	last_dropped_ours = last_dropped_theirs = 0;
 	last_calibrate_time = 0;
 
 	cycles_on_line = 0;
 	counted_lines = 0;
+	board_status = STARTING_LOCATION;
+	corrected_y = 0;
 
 	sonar_num = 0;
 	sonar_cycle = 0;

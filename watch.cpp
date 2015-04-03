@@ -3,16 +3,37 @@
 
 namespace robot {
 
+
+// turn to face the game board
+void turn_to_watch() {
+	Layer& watch = layers[LAYER_WATCH];
+	float to_turn = HALFPI - theta;
+	watch.speed = 0;
+	if (abs(to_turn) < THETA_TOLERANCE && !paused) {
+		hard_break();
+		watch.angle = 0;
+		return;
+	}
+	else {
+		if (paused) resume_drive();
+		if (to_turn > 0) watch.angle = COR_TURN;
+		else watch.angle = -COR_TURN;
+	}
+}
 // poll sensors bar for balls
 void watch_balls_drop() {
 	if (!layers[LAYER_WATCH].active) return;
 
-	if (!paused) hard_break();	// only watch when stationary
+	if (active_layer == LAYER_WATCH && millis() - last_calibrate_time > CALLIBRATION_TIME*4) {
+		SERIAL_PRINTLN("CB");
+		calibrate_bar(2000);
+		last_calibrate_time = millis();
+	}
 
+	turn_to_watch();
 	fire_lasers();
 	// check if any ball dropped
 	watch_bar();
-
 	// check if only 1 ball dropped (check for power of 2; if not then probably false alarm)
 	if ((ball_drops != BALL_LESS) && ((ball_drops & (ball_drops - 1)) == 0)) {
 		// need to be observe dropping in the same column for 3 cycles
@@ -28,7 +49,7 @@ void watch_balls_drop() {
 	}
 	else consecutive_drops = 0;
 
-	// drop_off_ball();
+	drop_off_ball();
 
 }
 
@@ -65,9 +86,9 @@ void update_game_board() {
 		}
 	}
 
-	SERIAL_PRINT("----");
-	for (byte slot = 0; slot < GAME_COLS; ++slot) {
-		for (int height = GAME_HEIGHT-1; height >= 0; --height) {
+	SERIAL_PRINTLN("----");
+	for (int height = GAME_HEIGHT-1; height >= 0; --height) {
+		for (byte slot = 0; slot < GAME_COLS; ++slot) {
 			byte this_ball = slots[slot][height];
 			if (this_ball == NO_BALL) {SERIAL_PRINT("  ");}
 			else if (this_ball == OUR_BALL) {SERIAL_PRINT("O ");}

@@ -6,6 +6,15 @@ namespace robot {
 
 // teleport to the nearest line, holding the farther away position value constant
 void correct_to_grid() {
+	// correction against red center line
+	if (abs(y - RENDEZVOUS_Y) < 0.5*GRID_WIDTH) {
+		x = round(x / GRID_WIDTH) * GRID_WIDTH;
+		// leaving line forward
+		if (theta > -HALFPI && theta < HALFPI) x += HALF_LINE_WIDTH;
+		else x -= HALF_LINE_WIDTH;
+		return;
+	}
+
 	// -150 % 200 = -150
 	int offset_x = abs((int)x) % GRID_WIDTH;
 	int offset_y = abs((int)y) % GRID_WIDTH;
@@ -35,7 +44,9 @@ void correct_to_grid() {
 }
 
 bool far_from_intersection(int xx, int yy) {
+	// only consider x when near red center line
 	byte offset_x = abs((int)xx) % GRID_WIDTH;
+	if (abs(yy - RENDEZVOUS_Y) < 0.5*GRID_WIDTH) return (offset_x < INTERSECTION_TOO_CLOSE || offset_x > GRID_WIDTH - INTERSECTION_TOO_CLOSE);
 	byte offset_y = abs((int)yy) % GRID_WIDTH;
 	return (offset_x < INTERSECTION_TOO_CLOSE || offset_x > GRID_WIDTH - INTERSECTION_TOO_CLOSE) ^
 			(offset_y < INTERSECTION_TOO_CLOSE || offset_y > GRID_WIDTH - INTERSECTION_TOO_CLOSE);	

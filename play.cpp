@@ -10,6 +10,8 @@ void play_ball() {
 	// just don't...
 	layers[LAYER_TURN].active = false;
 
+	SERIAL_PRINTLN('p');
+	
 	play.angle = 0;
 
 	// not watching means still moving, either to column to deposit ball or back to position
@@ -24,9 +26,8 @@ void play_ball() {
 		else play.speed = -PLAY_SPEED;
 		// backup without turning (avoid errors)
 
-		// assume navigation layer also turned on underneath so last_target_distance calculated
-		if ((target_distance < TARGET_IMMEDIATE) ||
-			 ((target_distance < TARGET_CIRCLE) && (target_distance > last_target_distance))) {
+		// only consider y when playing back and forth
+		if (abs(targets[target].y - y) < COL_CLOSE) {
 
 			// if returning to the rendezvous point can simply stop here and switch to watch mode
 			if (targets[target].type == TARGET_WATCH && ball_dropped) {
@@ -50,25 +51,29 @@ void play_ball() {
 	else {
 		play.speed = 0;
 		// ball is missing from bottom and sensors detect a ball dropped; indication can move back
-		if (!received_ball() && played_ball) {
+		if (!received_ball() && ball_status == BALL_LESS || played_ball) {
 			stop_lift_ball();
 			SERIAL_PRINTLN("ret");
 			// change the target to be rendezvous point and to watch
 			targets[target].x = RENDEZVOUS_X;
 			targets[target].y = RENDEZVOUS_Y;
 			targets[target].type = TARGET_WATCH;
+			played_ball = true;
+			jammed = false;
 			layers[LAYER_WATCH].active = false;
 		}
 		// perhaps jammed, try again (counted down all the way to 0)
-		else if (!played_ball && ball_status == BALL_LESS) {
+		else if (received_ball() && ball_status > BALL_LESS && ball_status < 0.5*BALL_TO_BE_DROPPED) {
 			SERIAL_PRINTLN('j');
 			stop_lift_ball();
 			delay(50);
 			ball_status = BALL_TO_BE_DROPPED * 0.5;
+			jammed = true;
 		}
 		else {
 			layers[LAYER_WATCH].active = true;
-			lift_ball();
+			if (jammed) lift_ball_harder();
+			else lift_ball();
 			--ball_status;
 		}
 	}
@@ -76,7 +81,10 @@ void play_ball() {
 }
 
 void lift_ball() {
-	digitalWrite(lift_pin, 160);
+	digitalWrite(lift_pin, LIFT_SPEED);
+}
+void lift_ball_harder() {
+	digitalWrite(lift_pin, LIFT_SPEED+30);
 }
 void stop_lift_ball() {
 	digitalWrite(lift_pin, 0);

@@ -11,6 +11,7 @@ int instant_tick_l, instant_tick_r;
 // subsumption layers
 Layer layers[LAYER_NUM];
 byte active_layer;
+byte allowed_layers;
 
 // avoid boundaries (point boundaries)
 Boundary boundaries[BOUNDARY_MAX];
@@ -36,7 +37,7 @@ int process_cycles;
 // motor control output hbridges
 Hbridge l, r;		
 // 1 for forward, -1 for backward
-int dir_l, dir_r;
+char dir_l, dir_r;
 
 // line detection for navigation correction
 unsigned long time_prev_sensors;
@@ -71,10 +72,10 @@ bool go() {
 	// might have to reprocess cycle if waypoint is reached
 	while (process_cycles > 0) {
 		// steer and set speed based on target and current position and heading
-		navigate();
+		if (allowed_layer(LAYER_NAV)) navigate();
 		// turn in place at waypoints if necessary
-		avoid_boundary();
-		hard_turn();
+		if (allowed_layer(LAYER_BOUND)) avoid_boundary();
+		if (allowed_layer(LAYER_TURN)) hard_turn();
 
 		user_behaviours();
 
@@ -115,6 +116,7 @@ void initialize_robot(byte c1_l, byte c2_l, byte outpin_l, byte c1_r, byte c2_r,
 	instant_tick_l = instant_tick_r = 0;
 	boundary_num = 0;
 	active_boundary = NONE_ACTIVE;
+	allowed_layers = ALL_ALLOWED;
 	// PID speed control parameters
 	time_prev = 0;
 	integral_l = integral_r = 0;
@@ -235,6 +237,10 @@ byte get_active_layer() {
 	return active_layer;		
 }
 
+bool allowed_layer(byte layer) {
+	return allowed_layers & (1 << layer);
+}
+
 // updates internal position
 void odometry() {
 	// reset for next round and do speed control
@@ -245,7 +251,6 @@ void odometry() {
 
 	// update internal position
 	// displacements in mm
-	if (drive == MANUAL) {dir_l = dir_r = FORWARD;}
 	double displacement_l = dir_l * (double)instant_tick_l * MM_PER_TICK_L;
 	double displacement_r = dir_r * (double)instant_tick_r * MM_PER_TICK_R;
 	double displacement = (displacement_l + displacement_r) * 0.5;
@@ -272,6 +277,7 @@ void motor_control(byte layer) {
 	if (target_l < 0) {
 		target_l = -target_l;
 		if (dir_l == FORWARD) {
+			// store change of direction so that drift is accounted for
 			dir_l = BACKWARD;
 			l.backward();
 		}

@@ -51,6 +51,7 @@ float prev_wall_distance[SONAR_MAX];
 float wall_distance[SONAR_MAX];
 byte sonar_num;
 byte sonar_cycle;
+byte turned_to_watch;
 
 
 
@@ -160,6 +161,7 @@ void initialize_gbot(byte lift, byte ball) {
 
 	sonar_num = 0;
 	sonar_cycle = 0;
+	turned_to_watch = 0;
 
 	// initialize game board
 	for (byte col = 0; col < GAME_COLS; ++col) {
@@ -179,6 +181,7 @@ void initialize_gbot(byte lift, byte ball) {
 
 void user_start() {
 	sonar_cycle = 0;
+	turned_to_watch = 0;
 }
 
 

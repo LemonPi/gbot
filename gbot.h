@@ -11,7 +11,6 @@ struct Slot {
 // lifting the ball
 extern byte lift_pin;
 extern byte ball_pin;
-extern bool ball_dropped;
 extern byte ball_status;
 
 
@@ -52,8 +51,10 @@ extern byte trigs[SONAR_MAX];
 extern byte echos[SONAR_MAX];
 extern float prev_wall_distance[SONAR_MAX];
 extern float wall_distance[SONAR_MAX];
+// extern float wall_offset[SONAR_MAX];
 extern byte sonar_num;
 extern byte sonar_cycle;
+extern byte turned_to_watch;
 
 
 

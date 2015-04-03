@@ -47,8 +47,11 @@ void touch_wall() {
 	else if (sonar_cycle == SONAR_CYCLE) {
 		// reset down to 0 by whichever uses the distances
 		sonar_cycle = WALL_DISTANCE_READY;
-		for (byte sonar = 0; sonar < SONAR_MAX; ++sonar) 
+		for (byte sonar = 0; sonar < SONAR_MAX; ++sonar) {
 			wall_distance[sonar] *= 1/(float)SONAR_CYCLE;
+			// wall_distance[sonar] += wall_offset[sonar];
+		} 
+
 	}
 }
 

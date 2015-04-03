@@ -155,7 +155,6 @@ void initialize_robot(byte c1_l, byte c2_l, byte outpin_l, byte c1_r, byte c2_r,
 
 	// bottom wait layer, always active, 0 speed
 	layers[LAYER_WAIT].active = true;
-	active_layer = 0;
 }
 
 void clamp(int& parameter, int low, int high) {

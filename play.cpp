@@ -9,8 +9,6 @@ void play_ball() {
 	if (!play.active) return;
 	// just don't...
 	layers[LAYER_TURN].active = false;
-
-	SERIAL_PRINTLN('p');
 	
 	play.angle = 0;
 
@@ -19,7 +17,11 @@ void play_ball() {
 		int heading = square_heading();
 		if (heading != DIR_RIGHT) return;
 
-		if (paused) resume_drive(LAYER_PLAY);
+		// the first point of starting motion, need to turn to watch again
+		if (paused) {
+			resume_drive(LAYER_PLAY);
+			turned_to_watch = 0;
+		}
 
 		// only need to consider heading right
 		if (targets[target].y > y) play.speed = PLAY_SPEED;
@@ -30,20 +32,21 @@ void play_ball() {
 		if (abs(targets[target].y - y) < COL_CLOSE) {
 
 			// if returning to the rendezvous point can simply stop here and switch to watch mode
-			if (targets[target].type == TARGET_WATCH && ball_dropped) {
-				SERIAL_PRINTLN('R');
+			if (targets[target].type == TARGET_WATCH && played_ball) {
+				SERIAL_PRINTLN("ren");
 				// rendezvous location loads to col 4
 				rel_pos = COL_4;
 				layers[LAYER_PLAY].active = false;
-				waypoint();
+				layers[LAYER_WATCH].active = true;
+				// waypoint();
 			}
 
-			// else must be to deposit a ball
+			// else must be moved to a column to deposit a ball
 			else {
-				SERIAL_PRINTLN('z');
+				SERIAL_PRINTLN("col");
 				// listen for self drop
 				layers[LAYER_WATCH].active = true;
-				ball_dropped = false;
+				played_ball = false;
 				hard_break(LAYER_PLAY);
 			}
 		}
@@ -51,7 +54,7 @@ void play_ball() {
 	else {
 		play.speed = 0;
 		// ball is missing from bottom and sensors detect a ball dropped; indication can move back
-		if (!received_ball() && ball_status == BALL_LESS || played_ball) {
+		if (!received_ball() && ball_status == BALL_LESS) {
 			stop_lift_ball();
 			SERIAL_PRINTLN("ret");
 			// change the target to be rendezvous point and to watch
@@ -63,7 +66,7 @@ void play_ball() {
 			layers[LAYER_WATCH].active = false;
 		}
 		// perhaps jammed, try again (counted down all the way to 0)
-		else if (received_ball() && ball_status > BALL_LESS && ball_status < 0.5*BALL_TO_BE_DROPPED) {
+		else if (received_ball() && !jammed && ball_status > BALL_LESS && ball_status < 0.5*BALL_TO_BE_DROPPED) {
 			SERIAL_PRINTLN('j');
 			stop_lift_ball();
 			delay(50);
@@ -71,7 +74,7 @@ void play_ball() {
 			jammed = true;
 		}
 		else {
-			layers[LAYER_WATCH].active = true;
+			// layers[LAYER_WATCH].active = true;
 			if (jammed) lift_ball_harder();
 			else lift_ball();
 			--ball_status;
@@ -81,13 +84,13 @@ void play_ball() {
 }
 
 void lift_ball() {
-	digitalWrite(lift_pin, LIFT_SPEED);
+	analogWrite(lift_pin, LIFT_SPEED);
 }
 void lift_ball_harder() {
-	digitalWrite(lift_pin, LIFT_SPEED+30);
+	analogWrite(lift_pin, LIFT_SPEED+30);
 }
 void stop_lift_ball() {
-	digitalWrite(lift_pin, 0);
+	analogWrite(lift_pin, 0);
 }
 
 // assign a score to a specific slot (column, height) both starting from 0

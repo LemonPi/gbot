@@ -84,7 +84,7 @@ void indicate_sensors() {
     	// clear ith bit or set ith bit
     	if (analogRead(sensors[i]) > thresholds[i]) {on_lines |= (1 << i); digitalWrite(indicators[i],HIGH);}
     	else										{on_lines &= ~(1 << i); digitalWrite(indicators[i],LOW);}
- 	}
+    }
 }
 
 void calibrate() {

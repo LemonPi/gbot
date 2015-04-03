@@ -89,7 +89,7 @@ constexpr float TARGET_CIRCLE = 10.0;	// allow for 20mm error from target
 constexpr float TARGET_IMMEDIATE = 5.0;// don't try to get closer than 5mm (fixes high heading error when really close)
 constexpr float TARGET_CLOSE = 200.0;	// slow down 100mm from target
 constexpr int NAV_TURN = 20;			// turn size in ticks/cycle, adjustable
-constexpr float THETA_TOLERANCE = 0.05;	// around 6 degree turning
+constexpr float THETA_TOLERANCE = 0.03;	// around 6 degree turning
 
 constexpr int ANY_THETA = 9000;	// if no target is set
 constexpr float CAN_TURN_IN_PLACE = 0.5; // minimum angle to activate turning in place
@@ -141,7 +141,7 @@ constexpr byte SIDE_FRONT = 0;
 constexpr byte SIDE_BACK = 1;
 constexpr byte FRONT = 2;
 constexpr float WALL_DISTANCE = 50;		// ideally 5cm away
-constexpr float SONAR_DISTANCE_TOLERANCE = 5;
+constexpr float SONAR_DISTANCE_TOLERANCE = 3.5;
 constexpr float SONAR_CHANGE_ALLOWANCE = 40;	// allow a difference of 40mm from current to previous reading
 constexpr float SONAR_TOO_FAR = 2000;		// from sonar to wall
 constexpr float SONAR_CLOSE_ENOUGH = 200;	// from center of the robot to the wall
@@ -172,7 +172,7 @@ constexpr byte GAME_HEIGHT = 6;	// 6 balls max
 constexpr byte SCORE_DEPTH = 3;	// only consider 3 away from the ball
 constexpr byte TWO_IN_ROW = 2;
 constexpr byte THREE_IN_ROW = 3;
-constexpr int LIFT_SPEED = 160;
+constexpr int LIFT_SPEED = 130;
 
 
 constexpr byte NO_BALL  = 0;
@@ -195,8 +195,8 @@ constexpr byte COL_WIDTH = 45;
 // ball statuses
 constexpr byte BALL_LESS = 0;
 constexpr byte JUST_GOT_BALL = 1;
-constexpr byte SECURED_BALL = 15;	// cycles of gate closing
-constexpr byte BALL_TO_BE_DROPPED = 300;	// 3s for it to rise
+constexpr byte SECURED_BALL = 5;	// cycles of gate closing
+constexpr byte BALL_TO_BE_DROPPED = 350;	// 3s for it to rise
 
 // sensor bar
 constexpr byte BAR_MAX = 7;

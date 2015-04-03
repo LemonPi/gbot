@@ -4,27 +4,34 @@
 namespace robot {
 
 
-// turn to face the game board
+// turn to face the game board (only ever active if watch is active)
 void turn_to_watch() {
-	Layer& watch = layers[LAYER_WATCH];
+	// control whatever the active layer is
+	Layer& watch = layers[active_layer];
+
 	float to_turn = HALFPI - theta;
+	if (turned_to_watch > RELIABLE_CORRECT_CYCLE && !(abs(to_turn) > 4*THETA_TOLERANCE)) return;
+
 	watch.speed = 0;
 	if (abs(to_turn) < THETA_TOLERANCE) {
 		if (!paused) hard_break(LAYER_WATCH);
 		watch.angle = 0;
+		++turned_to_watch;
 		return;
 	}
 	else {
+		turned_to_watch = 0;
 		if (paused) resume_drive(LAYER_WATCH);
-		if (to_turn > 0) watch.angle = COR_TURN;
-		else watch.angle = -COR_TURN;
+		if (to_turn > 0) watch.angle = 2*COR_TURN;
+		else watch.angle = -2*COR_TURN;
 	}
 }
 // poll sensors bar for balls
 void watch_balls_drop() {
 	if (!layers[LAYER_WATCH].active) return;
 
-	if (paused && active_layer == LAYER_WATCH && millis() - last_calibrate_time > CALLIBRATION_TIME*4) {
+	// only watch if you don't have ball or about to drop ball?
+	if (paused && ((ball_status == BALL_LESS) ^ (ball_status == BALL_TO_BE_DROPPED)) && millis() - last_calibrate_time > CALLIBRATION_TIME*4) {
 		SERIAL_PRINTLN("CB");
 		calibrate_bar(2000);
 		last_calibrate_time = millis();
@@ -111,7 +118,7 @@ void drop_off_ball() {
 		else if (ball_status == SECURED_BALL) {
 			pick_best_col();
 
-			SERIAL_PRINT('s');	// secured ball
+			SERIAL_PRINT("top");	// secured ball
 			SERIAL_PRINTLN(best_top_slot);
 
 			ball_status = BALL_TO_BE_DROPPED;

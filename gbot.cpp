@@ -13,9 +13,10 @@ byte ball_status = BALL_LESS;
 byte slots[GAME_COLS][GAME_HEIGHT];
 Slot top_slots[GAME_COLS];	
 // col 1, col 2, ... indices return their actual physical locations
-Target col_pos[GAME_COLS+1] = {{RENDEZVOUS_X, RENDEZVOUS_Y, HALFPI, TARGET_WATCH}, {RENDEZVOUS_X, 665, HALFPI, TARGET_PLAY}, 
-	{RENDEZVOUS_X, 710, HALFPI, TARGET_PLAY}, {RENDEZVOUS_X, 755, HALFPI, TARGET_PLAY}, {RENDEZVOUS_X, 800, HALFPI, TARGET_PLAY}, 
-	{RENDEZVOUS_X, 845, HALFPI, TARGET_PLAY}, {RENDEZVOUS_X, 890, HALFPI, TARGET_PLAY}, {RENDEZVOUS_X, 935, HALFPI, TARGET_PLAY}};
+Target col_pos[GAME_COLS+1] = {{RENDEZVOUS_X, RENDEZVOUS_Y-3*COL_WIDTH, HALFPI, TARGET_PLAY}, 
+	{RENDEZVOUS_X, RENDEZVOUS_Y-2*COL_WIDTH, HALFPI, TARGET_PLAY}, {RENDEZVOUS_X, RENDEZVOUS_Y-1*COL_WIDTH, HALFPI, TARGET_PLAY}, {RENDEZVOUS_X, RENDEZVOUS_Y, HALFPI, TARGET_PLAY}, 
+	{RENDEZVOUS_X, RENDEZVOUS_Y+1*COL_WIDTH, HALFPI, TARGET_PLAY}, {RENDEZVOUS_X, RENDEZVOUS_Y+2*COL_WIDTH, HALFPI, TARGET_PLAY}, {RENDEZVOUS_X, RENDEZVOUS_Y+3*COL_WIDTH, HALFPI, TARGET_PLAY},
+	{RENDEZVOUS_X, RENDEZVOUS_Y, HALFPI, TARGET_WATCH}};
 
 byte best_top_slot;
 byte continuous_ours = 0;
@@ -28,6 +29,7 @@ int rel_pos;
 
 // sensor bar
 byte bar_num;	// number of bar sensors
+byte laser_pin;
 byte lasers[BAR_MAX];
 byte bars[BAR_MAX];
 int ambient[BAR_MAX];
@@ -49,6 +51,7 @@ byte trigs[SONAR_MAX];
 byte echos[SONAR_MAX];
 float prev_wall_distance[SONAR_MAX];
 float wall_distance[SONAR_MAX];
+const float wall_distance_offset[SONAR_MAX] = {-7,0};
 byte sonar_num;
 byte sonar_cycle;
 byte turned_to_watch;
@@ -57,11 +60,13 @@ byte turned_to_watch;
 
 // called inside every go cycle
 void user_behaviours() {
+	if (layers[LAYER_NAV].active) SERIAL_PRINTLN('.');
 	play_ball();
 	// reset wall distances
 	if (active_layer == LAYER_TURN && prev_wall_distance[0] != 0)
 		reset_wall_distance();
 	// first reaching the left wall
+
 	if (board_status == STARTING_LOCATION && y - 0 < SONAR_CLOSE_ENOUGH) {
 		board_status = LEFT_WALL;
 		SERIAL_PRINTLN("BL");
@@ -127,16 +132,29 @@ void user_waypoint() {
 		hard_break(55);
 		layers[LAYER_WATCH].active = true;
 	}
+	// start watching
+	if (targets[target+1].type == TARGET_WATCH) {
+		layers[LAYER_PLAY].active = false;
+		layers[LAYER_WATCH].active = true;		
+	}
+	else if (targets[target+1].type == TARGET_PLAY) {
+		layers[LAYER_PLAY].active = true;
+		layers[LAYER_WATCH].active = true;
+		hard_break(LAYER_PLAY);
+		played_ball = false;
+	}
 }
 
 
-void initialize_gbot(byte lift, byte ball) {
+void initialize_gbot(byte lift, byte ball, byte laser) {
 	ball_dropped = false;
 	// PWM to control ball lift
 	lift_pin = lift;
 	pinMode(lift_pin, OUTPUT);
 	ball_pin = ball;
 	pinMode(ball_pin, INPUT);
+	laser_pin = laser;
+	pinMode(laser_pin, OUTPUT);
 
 	continuous_ours = 0;
 	continuous_theirs = 0;

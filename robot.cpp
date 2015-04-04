@@ -170,7 +170,10 @@ void start(byte layer) {
 	resume_drive(layer);
 	on = true;
 	tick_l = tick_r = 0;
-	if (target != NONE_ACTIVE) layers[LAYER_NAV].active = true;
+	if (target != NONE_ACTIVE) {
+		layers[LAYER_NAV].active = true;
+		enable_layer(LAYER_NAV);
+	}
 	else waypoint();
 	user_start();
 }

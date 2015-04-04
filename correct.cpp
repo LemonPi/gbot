@@ -29,7 +29,9 @@ void touch_wall() {
 			long duration = pulseIn(echos[sonar], HIGH);
 			distance[sonar] = ((float)duration*0.5) * DISTANCE_FROM_PULSE;
 			// can't be too far absolutely or from the previous reading
-			if (distance[sonar] > SONAR_TOO_FAR || ((prev_wall_distance[sonar] != 0) && (abs(distance[sonar] - prev_wall_distance[sonar]) > SONAR_CHANGE_ALLOWANCE))) {
+			if (distance[sonar] > SONAR_TOO_FAR
+			 || ((prev_wall_distance[sonar] != 0) && (abs(distance[sonar] - prev_wall_distance[sonar]) > SONAR_CHANGE_ALLOWANCE))
+			 ) {
 				outlier = true;
 				SERIAL_PRINTLN("OUT");
 				// backtrack to remove the entire cycle
@@ -49,7 +51,11 @@ void touch_wall() {
 		sonar_cycle = WALL_DISTANCE_READY;
 		for (byte sonar = 0; sonar < SONAR_MAX; ++sonar) {
 			wall_distance[sonar] *= 1/(float)SONAR_CYCLE;
-			// wall_distance[sonar] += wall_offset[sonar];
+			// sonar becomes unreliable when close to the wall
+			wall_distance[sonar] += wall_distance_offset[sonar];
+			// if (wall_distance[sonar] < RELIABLE_SONAR_DISTANCE) {
+			// 	wall_distance[sonar] -= 5;
+			// }
 		} 
 
 	}

@@ -133,16 +133,16 @@ constexpr int COR_TURN = 10;
 constexpr float DISTANCE_FROM_PULSE = 0.34364261168;
 constexpr byte SONAR_CYCLE = 5;
 constexpr byte WALL_DISTANCE_READY = SONAR_CYCLE + 1;	// signifies wall distances are calculated
-constexpr int GAME_BOARD_X = 1790;
+constexpr int GAME_BOARD_X = 1800;
 constexpr byte RELIABLE_CORRECT_CYCLE = 2;	// how many correction cycles before considered stable value 
-
+constexpr int RELIABLE_SONAR_DISTANCE = 45;
 
 constexpr byte SIDE_FRONT = 0;
 constexpr byte SIDE_BACK = 1;
 constexpr byte FRONT = 2;
-constexpr float WALL_DISTANCE = 50;		// ideally 5cm away
+constexpr float WALL_DISTANCE = 100;		// ideally 5cm away
 constexpr float SONAR_DISTANCE_TOLERANCE = 3.5;
-constexpr float SONAR_CHANGE_ALLOWANCE = 40;	// allow a difference of 40mm from current to previous reading
+constexpr float SONAR_CHANGE_ALLOWANCE = 100;	// allow a difference of 40mm from current to previous reading
 constexpr float SONAR_TOO_FAR = 2000;		// from sonar to wall
 constexpr float SONAR_CLOSE_ENOUGH = 200;	// from center of the robot to the wall
 constexpr int SONAR_THETA_MAXIMUM = 25;	// cannot reliably correct beyond 25 degrees
@@ -157,16 +157,16 @@ constexpr byte PLAYING = 4;
 
 // aligning to wall
 constexpr int SIDE_FRONT_OFFSET = 2;
-constexpr float CENTER_TO_SONAR_DISTANCE = 64.5;
-constexpr float SIDE_FRONT_BACK_RATIO = 54/(54+88);
-constexpr int SIDE_SONAR_DISTANCE = 54+88;
+constexpr float CENTER_TO_SONAR_DISTANCE = 17;
+constexpr int SIDE_SONAR_DISTANCE = 111+123;
+constexpr float SIDE_FRONT_BACK_RATIO = 123/SIDE_SONAR_DISTANCE;
 
 
 // playing the ball
 constexpr int PLAY_SPEED = 20;	// how fast to move between game board column locations
-constexpr int RENDEZVOUS_X = GAME_BOARD_X - WALL_DISTANCE - CENTER_TO_SONAR_DISTANCE;
-constexpr int RENDEZVOUS_Y = 800;
-constexpr int RENDEZVOUS_CLOSE = 10;	// within 1cm of rendezvous
+constexpr int RENDEZVOUS_X = GAME_BOARD_X - WALL_DISTANCE - CENTER_TO_SONAR_DISTANCE + 10;
+constexpr int RENDEZVOUS_Y = 890;
+constexpr int RENDEZVOUS_CLOSE = 5;	// within 5mm of rendezvous
 constexpr byte GAME_COLS = 7;
 constexpr byte GAME_HEIGHT = 6;	// 6 balls max
 constexpr byte SCORE_DEPTH = 3;	// only consider 3 away from the ball

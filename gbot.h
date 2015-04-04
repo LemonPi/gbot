@@ -30,6 +30,7 @@ extern int score;
 
 // sensor bar
 extern byte bar_num;	// number of bar sensors
+extern byte laser_pin;
 extern byte lasers[BAR_MAX];
 extern byte bars[BAR_MAX];
 extern int ambient[BAR_MAX];
@@ -51,14 +52,14 @@ extern byte trigs[SONAR_MAX];
 extern byte echos[SONAR_MAX];
 extern float prev_wall_distance[SONAR_MAX];
 extern float wall_distance[SONAR_MAX];
-// extern float wall_offset[SONAR_MAX];
+extern const float wall_distance_offset[SONAR_MAX];
 extern byte sonar_num;
 extern byte sonar_cycle;
 extern byte turned_to_watch;
 
 
 
-void initialize_gbot(byte lift_p, byte ball_p);
+void initialize_gbot(byte lift_p, byte ball_p, byte laser_p);
 
 
 // play module (deposit ball)
@@ -73,7 +74,7 @@ void pick_best_col();
 
 // watch module (listen to sensor bar)
 void watch_balls_drop();
-void fire_lasers();
+void fire_lasers(byte level);
 void watch_bar();
 int add_bar_sensor(byte sensor_pin, byte laser_pin);
 void calibrate_bar(unsigned long duration = CALLIBRATION_TIME);

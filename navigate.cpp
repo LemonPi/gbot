@@ -21,7 +21,7 @@ int add_target(double tx, double ty, double td, byte type, bool rad) {
 	targets[target].y = ty;
 	targets[target].theta = td;
 	targets[target].type = type;
-	layers[LAYER_NAV].active = true;
+	if (allowed_layer(LAYER_NAV)) layers[LAYER_NAV].active = true;
 	return target;
 }
 

@@ -36,31 +36,28 @@ void play_ball() {
 				SERIAL_PRINTLN("ren");
 				// rendezvous location loads to col 4
 				rel_pos = COL_4;
-				layers[LAYER_PLAY].active = false;
-				layers[LAYER_WATCH].active = true;
-				// waypoint();
+				waypoint();
 			}
 
 			// else must be moved to a column to deposit a ball
-			else {
+			else if (targets[target].type == TARGET_PLAY) {
 				SERIAL_PRINTLN("col");
 				// listen for self drop
-				layers[LAYER_WATCH].active = true;
-				played_ball = false;
-				hard_break(LAYER_PLAY);
+				waypoint();
 			}
 		}
 	}
 	else {
 		play.speed = 0;
 		// ball is missing from bottom and sensors detect a ball dropped; indication can move back
-		if (!received_ball() && ball_status == BALL_LESS) {
+		if (!received_ball() && ball_status == BALL_LESS && !played_ball) {
 			stop_lift_ball();
 			SERIAL_PRINTLN("ret");
 			// change the target to be rendezvous point and to watch
-			targets[target].x = RENDEZVOUS_X;
-			targets[target].y = RENDEZVOUS_Y;
-			targets[target].type = TARGET_WATCH;
+			add_target(RENDEZVOUS_X, RENDEZVOUS_Y, 90, TARGET_WATCH);
+			// targets[target].x = RENDEZVOUS_X;
+			// targets[target].y = RENDEZVOUS_Y;
+			// targets[target].type = TARGET_WATCH;
 			played_ball = true;
 			jammed = false;
 			layers[LAYER_WATCH].active = false;

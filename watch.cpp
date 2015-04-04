@@ -10,7 +10,7 @@ void turn_to_watch() {
 	Layer& watch = layers[active_layer];
 
 	float to_turn = HALFPI - theta;
-	if (turned_to_watch > RELIABLE_CORRECT_CYCLE && !(abs(to_turn) > 4*THETA_TOLERANCE)) return;
+	if (turned_to_watch > RELIABLE_CORRECT_CYCLE && !(abs(to_turn) > 2*THETA_TOLERANCE)) return;
 
 	watch.speed = 0;
 	if (abs(to_turn) < THETA_TOLERANCE) {
@@ -28,17 +28,20 @@ void turn_to_watch() {
 }
 // poll sensors bar for balls
 void watch_balls_drop() {
-	if (!layers[LAYER_WATCH].active) return;
+	if (!layers[LAYER_WATCH].active) {
+		fire_lasers(HIGH);
+		return;
+	}
 
 	// only watch if you don't have ball or about to drop ball?
-	if (paused && ((ball_status == BALL_LESS) ^ (ball_status == BALL_TO_BE_DROPPED)) && millis() - last_calibrate_time > CALLIBRATION_TIME*4) {
+	if (turned_to_watch > RELIABLE_CORRECT_CYCLE && ((ball_status == BALL_LESS) ^ (ball_status == BALL_TO_BE_DROPPED)) && millis() - last_calibrate_time > CALLIBRATION_TIME*4) {
 		SERIAL_PRINTLN("CB");
 		calibrate_bar(2000);
 		last_calibrate_time = millis();
 	}
 
 	turn_to_watch();
-	fire_lasers();
+	fire_lasers(LOW);
 	// check if any ball dropped
 	watch_bar();
 	// check if only 1 ball dropped (check for power of 2; if not then probably false alarm)
@@ -136,12 +139,11 @@ void drop_off_ball() {
 		}
 		else ++ball_status;
 	}
+	else if (!received_ball() && !layers[LAYER_PLAY].active && ball_status < SECURED_BALL) ball_status = BALL_LESS;
 }
 
-void fire_lasers() {
-	for (byte l = 0; l < bar_num; ++l) {
-
-	}
+void fire_lasers(byte level) {
+	digitalWrite(laser_pin, level);
 }
 
 // updates if slots and whether ball dropped

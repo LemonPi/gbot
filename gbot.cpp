@@ -45,6 +45,7 @@ int cycles_on_line;
 int counted_lines;
 byte board_status;
 byte corrected_y;
+byte corrected_x;
 
 
 byte trigs[SONAR_MAX];
@@ -55,12 +56,13 @@ const float wall_distance_offset[SONAR_MAX] = {-7,0};
 byte sonar_num;
 byte sonar_cycle;
 byte turned_to_watch;
+float turn_factor;
 
 
 
 // called inside every go cycle
 void user_behaviours() {
-	if (layers[LAYER_NAV].active) SERIAL_PRINTLN('.');
+
 	play_ball();
 	// reset wall distances
 	if (active_layer == LAYER_TURN && prev_wall_distance[0] != 0)
@@ -71,46 +73,40 @@ void user_behaviours() {
 		board_status = LEFT_WALL;
 		SERIAL_PRINTLN("BL");
 	}
-	else if (board_status == LEFT_WALL && GAME_BOARD_X - x < SONAR_CLOSE_ENOUGH) {
-		// calibrate y position before turning
-		enable_layer(LAYER_COR);
-		disable_layer(LAYER_TURN);
-		if (!paused) hard_break(LAYER_COR);
-		if (corrected_y >= RELIABLE_CORRECT_CYCLE) {
-			board_status = GAME_WALL;
-			add_target(x, y, 90, TARGET_TURN);
-			resume_drive(LAYER_COR);
-			SERIAL_PRINTLN("BG");
-			disable_layer(LAYER_COR);
-			enable_layer(LAYER_TURN);
-			reset_wall_distance();
-		}
+	// correct increments from 1 and resets back down to 0
+	else if (board_status == LEFT_WALL && corrected_y >= RELIABLE_CORRECT_CYCLE) {
+		board_status = GAME_WALL;
+		add_target(x, y, 90, TARGET_TURN);
+		resume_drive(LAYER_COR);
+		SERIAL_PRINTLN("BG");
+		disable_layer(LAYER_COR);
+		enable_layer(LAYER_TURN);
+		reset_wall_distance();
 	}
 	// don't turn in place when you're too close to the board
-	else if (board_status == GAME_WALL && HALFPI - theta < THETA_TOLERANCE) {
-		enable_layer(LAYER_COR);
-		disable_layer(LAYER_TURN);
+	else if (board_status == GAME_WALL && corrected_x >= RELIABLE_CORRECT_CYCLE) {
 		board_status = GOING_TO_PLAY;
 		// go to rendezvous location
+		resume_drive(LAYER_NAV);
 		add_target(RENDEZVOUS_X, RENDEZVOUS_Y, 90, TARGET_WATCH);
+		disable_layer(LAYER_COR);
 		SERIAL_PRINTLN("BGP");
-	}
-	// stop navigating when rendezvous reached the first time
-	else if (board_status == GOING_TO_PLAY && RENDEZVOUS_Y - y < RENDEZVOUS_CLOSE) {
-		disable_layer(LAYER_NAV);
-		hard_break(LAYER_WATCH);
-		layers[LAYER_WATCH].active = true;
-		board_status = PLAYING;
-		// start watching
-		SERIAL_PRINTLN("BP");
 	}
 
 
 	if (allowed_layer(LAYER_COR)) {
+		if (allowed_layer(LAYER_WATCH)) turn_to_watch();
 		if (sonar_cycle == WALL_DISTANCE_READY) {
 			hug_wall();
 			sonar_cycle = 0;
 		}
+	}
+	if (active_layer == LAYER_PLAY) {
+		SERIAL_PRINT(heading_error * RADS);
+		SERIAL_PRINT('|');
+		SERIAL_PRINT(layers[LAYER_PLAY].speed);
+		SERIAL_PRINT('|');
+		SERIAL_PRINTLN(layers[LAYER_PLAY].angle);
 	}
 }
 
@@ -125,24 +121,67 @@ void user_correct() {
 
 // called after arriving
 void user_waypoint() {
-	// listen to game whenever not moving
-	if (board_status == PLAYING) {
-		// assume rests at 4th pillar (rendezvous)
-		rel_pos = COL_4;
-		hard_break(55);
-		layers[LAYER_WATCH].active = true;
+	turned_to_watch = 0;
+	stop_lift_ball();
+
+	if (board_status == LEFT_WALL && GAME_BOARD_X - x < SONAR_CLOSE_ENOUGH) {
+		// calibrate y position before turning
+		enable_layer(LAYER_COR);
+		disable_layer(LAYER_TURN);
+		if (!paused) hard_break(LAYER_COR);
+	}	
+	else if (board_status == GAME_WALL) {
+		hard_break(LAYER_TURN);
+		SERIAL_PRINTLN("RW");
+		reset_wall_distance();
+		delay(500);
+		enable_layer(LAYER_COR);
 	}
-	// start watching
+	// stop navigating when rendezvous reached the first time
+	else if (board_status == GOING_TO_PLAY && RENDEZVOUS_Y - y < RENDEZVOUS_CLOSE) {
+		disable_layer(LAYER_TURN);
+		disable_layer(LAYER_NAV);
+		enable_layer(LAYER_COR);
+		enable_layer(LAYER_WATCH);
+		hard_break(LAYER_WATCH);
+		layers[LAYER_WATCH].active = true;
+		board_status = PLAYING;
+		// start watching
+		SERIAL_PRINTLN("BP");
+	}
+	// nothing else to do, go back to rendezvous
+	else if (target == NONE_ACTIVE) {
+		add_target(RENDEZVOUS_X, RENDEZVOUS_Y, 90, TARGET_WATCH);
+	}
+
+	// arrived at rendezvous
 	if (targets[target+1].type == TARGET_WATCH) {
+		if (target == NONE_ACTIVE) target = 0;
+		enable_layer(LAYER_WATCH);	
+		enable_layer(LAYER_COR);	
 		layers[LAYER_PLAY].active = false;
-		layers[LAYER_WATCH].active = true;		
-	}
-	else if (targets[target+1].type == TARGET_PLAY) {
-		layers[LAYER_PLAY].active = true;
 		layers[LAYER_WATCH].active = true;
-		hard_break(LAYER_PLAY);
-		played_ball = false;
+		turned_to_watch = 0;
+		rel_pos = COL_4;	
+		hard_break(LAYER_WATCH);
+		SERIAL_PRINTLN("ren");
 	}
+	// arrived at a column
+	else if (targets[target+1].type == TARGET_PLAY) {
+		enable_layer(LAYER_WATCH);	
+		enable_layer(LAYER_COR);	
+		layers[LAYER_PLAY].active = true;
+		layers[LAYER_PLAY].speed = 0;
+		layers[LAYER_PLAY].angle = 0;
+		layers[LAYER_WATCH].active = true;
+		turned_to_watch = 0;
+		played_ball = false;
+		rel_pos = best_top_slot;
+		hard_break(LAYER_PLAY);
+		SERIAL_PRINTLN("col");
+	}
+
+	// turn_to_watch();
 }
 
 
@@ -158,7 +197,7 @@ void initialize_gbot(byte lift, byte ball, byte laser) {
 
 	continuous_ours = 0;
 	continuous_theirs = 0;
-	best_top_slot = 3;
+	best_top_slot = COL_4;
 	streak = true;
 	prev_slot = OUR_BALL;
 
@@ -176,10 +215,12 @@ void initialize_gbot(byte lift, byte ball, byte laser) {
 	counted_lines = 0;
 	board_status = STARTING_LOCATION;
 	corrected_y = 0;
+	corrected_x = 0;
 
 	sonar_num = 0;
 	sonar_cycle = 0;
 	turned_to_watch = 0;
+	turn_factor = 1;
 
 	// initialize game board
 	for (byte col = 0; col < GAME_COLS; ++col) {
@@ -195,11 +236,16 @@ void initialize_gbot(byte lift, byte ball, byte laser) {
 	layers[LAYER_WATCH].angle = 0;
 	// only wall correct at certain points
 	disable_layer(LAYER_COR);
+	disable_layer(LAYER_WATCH);
 }
 
 void user_start() {
 	sonar_cycle = 0;
 	turned_to_watch = 0;
+	turn_factor = 1;
+}
+void user_stop() {
+	stop_lift_ball();
 }
 
 

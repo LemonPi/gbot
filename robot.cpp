@@ -71,6 +71,8 @@ bool go() {
 
 	// might have to reprocess cycle if waypoint is reached
 	while (process_cycles > 0) {
+		// calculate target_distance and target_theta
+		locate_target();	
 		// steer and set speed based on target and current position and heading
 		if (allowed_layer(LAYER_NAV)) navigate();
 		// turn in place at waypoints if necessary
@@ -98,7 +100,6 @@ bool go() {
 // called every loop, position correction system
 bool correct() {
 	unsigned long now = millis();
-	unsigned long elapsed = now - time_prev_sensors;
 	if (now - time_prev_sensors < SENSOR_TIME) return false;
 
 	// also updates readings
@@ -170,9 +171,8 @@ void start(byte layer) {
 	resume_drive(layer);
 	on = true;
 	tick_l = tick_r = 0;
-	if (target != NONE_ACTIVE) {
+	if (target != NONE_ACTIVE && allowed_layer(LAYER_NAV)) {
 		layers[LAYER_NAV].active = true;
-		enable_layer(LAYER_NAV);
 	}
 	else waypoint();
 	user_start();
@@ -181,6 +181,7 @@ void start(byte layer) {
 void stop(byte layer) {
 	on = false;
 	hard_break(layer);
+	user_stop();
 }
 
 void hard_break(byte layer) {	

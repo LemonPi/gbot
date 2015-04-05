@@ -7,24 +7,47 @@ namespace robot {
 // turn to face the game board (only ever active if watch is active)
 void turn_to_watch() {
 	// control whatever the active layer is
+	// SERIAL_PRINTLN('.');
 	Layer& watch = layers[active_layer];
+	if (active_layer == LAYER_WATCH) watch.angle = 0; 
 
 	float to_turn = HALFPI - theta;
-	if (turned_to_watch > RELIABLE_CORRECT_CYCLE && !(abs(to_turn) > 2*THETA_TOLERANCE)) return;
-
-	watch.speed = 0;
-	if (abs(to_turn) < THETA_TOLERANCE) {
-		if (!paused) hard_break(LAYER_WATCH);
-		watch.angle = 0;
-		++turned_to_watch;
+	if (turned_to_watch > RELIABLE_CORRECT_CYCLE && abs(to_turn) < 2*THETA_TOLERANCE) {	
+		turn_factor = 1;
 		return;
 	}
-	else {
-		turned_to_watch = 0;
-		if (paused) resume_drive(LAYER_WATCH);
-		if (to_turn > 0) watch.angle = 2*COR_TURN;
-		else watch.angle = -2*COR_TURN;
+	int turn_speed = COR_TURN*turn_factor;
+	// jump start turning
+	if (turn_factor == 1) turn_speed *= 1.5;
+	// stationary active layer, turn in place
+	if (watch.speed == 0) {
+		if (abs(to_turn) < THETA_TOLERANCE) {
+			if (!paused) hard_break(LAYER_WATCH);
+			watch.angle = 0;
+			++turned_to_watch;
+		}
+		else {
+			turned_to_watch = 0;
+			SERIAL_PRINTLN("TTW");
+			if (paused) resume_drive(LAYER_WATCH);
+			if (to_turn > 0) watch.angle = 2*turn_speed;
+			else watch.angle = -2*turn_speed;
+		}
 	}
+	// correct more gradually while moving
+	else {
+		if (abs(to_turn) < THETA_TOLERANCE) {
+			// watch.angle += 0;
+			++turned_to_watch;
+		}
+		else {
+			turned_to_watch = 0;
+			SERIAL_PRINTLN("TTM");
+			if (to_turn > 0) watch.angle = turn_speed;
+			else watch.angle = -turn_speed;
+		}
+	}
+	turn_factor *= 0.9;
 }
 // poll sensors bar for balls
 void watch_balls_drop() {
@@ -33,14 +56,13 @@ void watch_balls_drop() {
 		return;
 	}
 
+	if (turned_to_watch < RELIABLE_CORRECT_CYCLE) return;
 	// only watch if you don't have ball or about to drop ball?
-	if (turned_to_watch > RELIABLE_CORRECT_CYCLE && ((ball_status == BALL_LESS) ^ (ball_status == BALL_TO_BE_DROPPED)) && millis() - last_calibrate_time > CALLIBRATION_TIME*4) {
+	if (millis() - last_calibrate_time > CALLIBRATION_TIME*3) {
 		SERIAL_PRINTLN("CB");
-		calibrate_bar(2000);
-		last_calibrate_time = millis();
+		calibrate_bar(1000);
 	}
 
-	turn_to_watch();
 	fire_lasers(LOW);
 	// check if any ball dropped
 	watch_bar();
@@ -127,17 +149,15 @@ void drop_off_ball() {
 			ball_status = BALL_TO_BE_DROPPED;
 			// at this point ball has not been played
 			played_ball = false;
-
 			// go to top best slot
 			add_target(col_pos[best_top_slot].x, col_pos[best_top_slot].y, 90, TARGET_PLAY);
-			// anticipate relative position
-			rel_pos = best_top_slot;
 			// stop watching the game when moving around
+			disable_layer(LAYER_WATCH);
+			disable_layer(LAYER_COR);
 			layers[LAYER_PLAY].active = true;
-			layers[LAYER_WATCH].active = false;
 			return;
 		}
-		else ++ball_status;
+		else if (ball_status < SECURED_BALL) ++ball_status;
 	}
 	else if (!received_ball() && !layers[LAYER_PLAY].active && ball_status < SECURED_BALL) ball_status = BALL_LESS;
 }
@@ -197,6 +217,7 @@ void calibrate_bar(unsigned long duration) {
     	SERIAL_PRINT(' ');
     }
     SERIAL_PRINT('\n');
+	last_calibrate_time = millis();
 }
 
 bool received_ball() {

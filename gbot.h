@@ -5,7 +5,8 @@
 namespace robot {
 
 struct Slot {
-	byte c, h, score;
+	byte c, h;
+	int score;
 };
 
 // lifting the ball
@@ -46,6 +47,7 @@ extern int cycles_on_line;
 extern int counted_lines;
 extern byte board_status;
 extern byte corrected_y;
+extern byte corrected_x;
 
 // sonar
 extern byte trigs[SONAR_MAX];
@@ -56,6 +58,7 @@ extern const float wall_distance_offset[SONAR_MAX];
 extern byte sonar_num;
 extern byte sonar_cycle;
 extern byte turned_to_watch;
+extern float turn_factor;
 
 
 
@@ -73,6 +76,7 @@ void score_slot(byte c, byte h);
 void pick_best_col();
 
 // watch module (listen to sensor bar)
+void turn_to_watch();
 void watch_balls_drop();
 void fire_lasers(byte level);
 void watch_bar();
@@ -90,5 +94,6 @@ void touch_wall();
 void hug_wall();
 bool ready_to_hug_wall();
 void reset_wall_distance();
+bool far_from_intersection_gbot(int xx, int yy);
 
 }

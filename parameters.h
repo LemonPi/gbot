@@ -35,7 +35,7 @@ constexpr byte LAYER_WAIT = 6;
 constexpr byte LAYER_GET = 7;	// non-existent layer
 constexpr byte ALL_ALLOWED = B11111111;
 
-constexpr int CYCLE_TIME = 20; 	// in ms
+constexpr int CYCLE_TIME = 50; 	// in ms
 constexpr int SENSOR_TIME = 10;  // in ms, 5x faster than navigation cycles
 
 // maximum array bounds
@@ -88,7 +88,7 @@ constexpr int START_SPEED = 45;
 constexpr float TARGET_CIRCLE = 10.0;	// allow for 20mm error from target
 constexpr float TARGET_IMMEDIATE = 5.0;// don't try to get closer than 5mm (fixes high heading error when really close)
 constexpr float TARGET_CLOSE = 200.0;	// slow down 100mm from target
-constexpr int NAV_TURN = 20;			// turn size in ticks/cycle, adjustable
+constexpr int NAV_TURN = 11;			// turn size in ticks/cycle, adjustable
 constexpr float THETA_TOLERANCE = 0.03;	// around 6 degree turning
 
 constexpr int ANY_THETA = 9000;	// if no target is set
@@ -134,7 +134,7 @@ constexpr float DISTANCE_FROM_PULSE = 0.34364261168;
 constexpr byte SONAR_CYCLE = 5;
 constexpr byte WALL_DISTANCE_READY = SONAR_CYCLE + 1;	// signifies wall distances are calculated
 constexpr int GAME_BOARD_X = 1800;
-constexpr byte RELIABLE_CORRECT_CYCLE = 2;	// how many correction cycles before considered stable value 
+constexpr byte RELIABLE_CORRECT_CYCLE = 6;	// how many correction cycles before considered stable value 
 constexpr int RELIABLE_SONAR_DISTANCE = 45;
 
 constexpr byte SIDE_FRONT = 0;
@@ -142,9 +142,9 @@ constexpr byte SIDE_BACK = 1;
 constexpr byte FRONT = 2;
 constexpr float WALL_DISTANCE = 100;		// ideally 5cm away
 constexpr float SONAR_DISTANCE_TOLERANCE = 3.5;
-constexpr float SONAR_CHANGE_ALLOWANCE = 100;	// allow a difference of 40mm from current to previous reading
+constexpr float SONAR_CHANGE_ALLOWANCE = 400;	// allow a difference of 40mm from current to previous reading
 constexpr float SONAR_TOO_FAR = 2000;		// from sonar to wall
-constexpr float SONAR_CLOSE_ENOUGH = 200;	// from center of the robot to the wall
+constexpr float SONAR_CLOSE_ENOUGH = 300;	// from center of the robot to the wall
 constexpr int SONAR_THETA_MAXIMUM = 25;	// cannot reliably correct beyond 25 degrees
 
 // board statuses
@@ -159,12 +159,12 @@ constexpr byte PLAYING = 4;
 constexpr int SIDE_FRONT_OFFSET = 2;
 constexpr float CENTER_TO_SONAR_DISTANCE = 17;
 constexpr int SIDE_SONAR_DISTANCE = 111+123;
-constexpr float SIDE_FRONT_BACK_RATIO = 123/SIDE_SONAR_DISTANCE;
+constexpr float SIDE_FRONT_BACK_RATIO = 123.0/SIDE_SONAR_DISTANCE;
 
 
 // playing the ball
-constexpr int PLAY_SPEED = 20;	// how fast to move between game board column locations
-constexpr int RENDEZVOUS_X = GAME_BOARD_X - WALL_DISTANCE - CENTER_TO_SONAR_DISTANCE + 10;
+constexpr int PLAY_SPEED = 30;	// how fast to move between game board column locations
+constexpr int RENDEZVOUS_X = GAME_BOARD_X - WALL_DISTANCE - CENTER_TO_SONAR_DISTANCE + 10 - 200;
 constexpr int RENDEZVOUS_Y = 890;
 constexpr int RENDEZVOUS_CLOSE = 5;	// within 5mm of rendezvous
 constexpr byte GAME_COLS = 7;
@@ -196,7 +196,7 @@ constexpr byte COL_WIDTH = 45;
 constexpr byte BALL_LESS = 0;
 constexpr byte JUST_GOT_BALL = 1;
 constexpr byte SECURED_BALL = 5;	// cycles of gate closing
-constexpr byte BALL_TO_BE_DROPPED = 350;	// 3s for it to rise
+constexpr byte BALL_TO_BE_DROPPED = 70;	// 3.5s for it to rise
 
 // sensor bar
 constexpr byte BAR_MAX = 7;

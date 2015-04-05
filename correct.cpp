@@ -40,7 +40,7 @@ void touch_wall() {
 				break;
 			}
 			wall_distance[sonar] += distance[sonar];
-			delay(2);
+			delay(1);
 		}
 		if (!outlier) ++sonar_cycle;
 		outlier = false;
@@ -51,14 +51,10 @@ void touch_wall() {
 		sonar_cycle = WALL_DISTANCE_READY;
 		for (byte sonar = 0; sonar < SONAR_MAX; ++sonar) {
 			wall_distance[sonar] *= 1/(float)SONAR_CYCLE;
-			// sonar becomes unreliable when close to the wall
 			wall_distance[sonar] += wall_distance_offset[sonar];
-			// if (wall_distance[sonar] < RELIABLE_SONAR_DISTANCE) {
-			// 	wall_distance[sonar] -= 5;
-			// }
 		} 
-
 	}
+	else sonar_cycle = 0;
 }
 
 void reset_wall_distance() {
@@ -80,10 +76,12 @@ void hug_wall() {
 	if (abs(theta_offset) < THETA_TOLERANCE) {
 		theta = perpendicular_angle * DEGS;
 	}
-	else theta = (perpendicular_angle*DEGS) + theta_offset;
+	else if (theta_offset < CAN_TURN_IN_PLACE) theta = (perpendicular_angle*DEGS) + theta_offset;
+	// offset is too large, ignore
+	else return;
 
 	// at gameboard
-	float center_distance = wall_distance[SIDE_BACK]*SIDE_FRONT_BACK_RATIO + wall_distance[SIDE_FRONT]*(1-SIDE_FRONT_BACK_RATIO) + CENTER_TO_SONAR_DISTANCE;
+	float center_distance = cos(theta_offset)*(wall_distance[SIDE_BACK]*(1-SIDE_FRONT_BACK_RATIO) + wall_distance[SIDE_FRONT]*(SIDE_FRONT_BACK_RATIO) + CENTER_TO_SONAR_DISTANCE);
 	SERIAL_PRINT(wall_distance[SIDE_FRONT]);
 	SERIAL_PRINT(' ');
 	SERIAL_PRINT(wall_distance[SIDE_BACK]);
@@ -91,6 +89,7 @@ void hug_wall() {
 	SERIAL_PRINTLN(center_distance);
 	if (perpendicular_angle == DIR_RIGHT) {
 		x = GAME_BOARD_X - center_distance;
+		++corrected_x;
 	}
 	else if (perpendicular_angle == DIR_UP) {
 		y = 0 + center_distance;
@@ -114,7 +113,7 @@ void passive_position_correct() {
 	else {
 		// false positive, not on line for enough cycles
 		if (cycles_on_line < CYCLES_CROSSING_LINE && cycles_on_line >= 0) ;
-		else if (counted_lines >= LINES_PER_CORRECT && far_from_intersection(x, y)) {
+		else if (counted_lines >= LINES_PER_CORRECT && far_from_intersection_gbot(x, y)) {
 			counted_lines = 0;
 			// correct whichever one is closer to 0 or 200 
 			correct_to_grid();
@@ -127,6 +126,16 @@ void passive_position_correct() {
 		cycles_on_line = 0;
 	}
 }
+
+bool far_from_intersection_gbot(int xx, int yy) {
+	// consider red line as lines as usual
+	byte offset_x = abs((int)xx) % GRID_WIDTH;
+	byte offset_y = abs((int)yy) % GRID_WIDTH;
+	return (offset_x < INTERSECTION_TOO_CLOSE || offset_x > GRID_WIDTH - INTERSECTION_TOO_CLOSE) ^
+			(offset_y < INTERSECTION_TOO_CLOSE || offset_y > GRID_WIDTH - INTERSECTION_TOO_CLOSE);	
+}
+
+
 
 
 }

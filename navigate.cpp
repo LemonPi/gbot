@@ -63,7 +63,6 @@ void hard_turn() {
 // resets target_x, target_y when arrived
 void navigate() {
 	Layer& nav = layers[LAYER_NAV];
-	locate_target();	// calculate target_distance and target_theta
 	if (!nav.active || layers[LAYER_TURN].active) return;
 
 	// turn in place
@@ -155,7 +154,7 @@ void waypoint() {
 	if (target > 0) { 
 		--target; 
 		++process_cycles; 
-		layers[LAYER_NAV].active = true;
+		if (allowed_layer(LAYER_NAV)) layers[LAYER_NAV].active = true;
 	}
 	// reached last target
 	else if (target == 0) {
@@ -167,7 +166,7 @@ void waypoint() {
 
 	// finished turning in place (2nd call of waypoint)
 	if (layers[LAYER_TURN].active) {
-		layers[LAYER_NAV].active = true;
+		if (allowed_layer(LAYER_NAV)) layers[LAYER_NAV].active = true;
 		layers[LAYER_TURN].active = false;
 	} 
 	

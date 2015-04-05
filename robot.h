@@ -104,6 +104,7 @@ void user_behaviours();
 void user_waypoint();
 void user_correct();
 void user_start();
+void user_stop();
 
 
 // 3 pins each for hbridges, by default off and going forward

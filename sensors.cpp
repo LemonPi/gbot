@@ -6,15 +6,6 @@ namespace robot {
 
 // teleport to the nearest line, holding the farther away position value constant
 void correct_to_grid() {
-	// correction against red center line
-	if (abs(y - RENDEZVOUS_Y) < 0.5*GRID_WIDTH) {
-		x = round(x / GRID_WIDTH) * GRID_WIDTH;
-		// leaving line forward
-		if (theta > -HALFPI && theta < HALFPI) x += HALF_LINE_WIDTH;
-		else x -= HALF_LINE_WIDTH;
-		return;
-	}
-
 	// -150 % 200 = -150
 	int offset_x = abs((int)x) % GRID_WIDTH;
 	int offset_y = abs((int)y) % GRID_WIDTH;

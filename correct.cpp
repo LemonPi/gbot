@@ -18,6 +18,7 @@ void touch_wall() {
 	if (sonar_cycle < SONAR_CYCLE) {
 		bool outlier = false;
 		float distance[SONAR_MAX];
+		SERIAL_PRINT('.');
 		for (byte sonar = 0; sonar < sonar_num; ++sonar) {
 			// manual pulse
 			digitalWrite(trigs[sonar], LOW);
@@ -28,6 +29,8 @@ void touch_wall() {
 
 			long duration = pulseIn(echos[sonar], HIGH);
 			distance[sonar] = ((float)duration*0.5) * DISTANCE_FROM_PULSE;
+			// SERIAL_PRINT(distance[sonar]);
+			// SERIAL_PRINT(' ');
 			// can't be too far absolutely or from the previous reading
 			if (distance[sonar] > SONAR_TOO_FAR
 			 || ((prev_wall_distance[sonar] != 0) && (abs(distance[sonar] - prev_wall_distance[sonar]) > SONAR_CHANGE_ALLOWANCE))
@@ -40,21 +43,23 @@ void touch_wall() {
 				break;
 			}
 			wall_distance[sonar] += distance[sonar];
+			// don't delay on the last sonar
 			delay(1);
 		}
 		if (!outlier) ++sonar_cycle;
 		outlier = false;
+		// SERIAL_PRINT('\n');
 		
 	}
 	else if (sonar_cycle == SONAR_CYCLE) {
 		// reset down to 0 by whichever uses the distances
 		sonar_cycle = WALL_DISTANCE_READY;
-		for (byte sonar = 0; sonar < SONAR_MAX; ++sonar) {
+		for (byte sonar = 0; sonar < sonar_num; ++sonar) {
 			wall_distance[sonar] *= 1/(float)SONAR_CYCLE;
 			wall_distance[sonar] += wall_distance_offset[sonar];
 		} 
 	}
-	else sonar_cycle = 0;
+	// else sonar_cycle = 0;
 }
 
 void reset_wall_distance() {
@@ -73,30 +78,31 @@ void hug_wall() {
 	SERIAL_PRINTLN(distance_offset);
 
 	int perpendicular_angle = square_heading();
-	if (abs(theta_offset) < THETA_TOLERANCE) {
-		theta = perpendicular_angle * DEGS;
-	}
-	else if (theta_offset < CAN_TURN_IN_PLACE) theta = (perpendicular_angle*DEGS) + theta_offset;
-	// offset is too large, ignore
-	else return;
 
-	// at gameboard
-	float center_distance = cos(theta_offset)*(wall_distance[SIDE_BACK]*(1-SIDE_FRONT_BACK_RATIO) + wall_distance[SIDE_FRONT]*(SIDE_FRONT_BACK_RATIO) + CENTER_TO_SONAR_DISTANCE);
-	SERIAL_PRINT(wall_distance[SIDE_FRONT]);
-	SERIAL_PRINT(' ');
-	SERIAL_PRINT(wall_distance[SIDE_BACK]);
-	SERIAL_PRINT(' ');
-	SERIAL_PRINTLN(center_distance);
-	if (perpendicular_angle == DIR_RIGHT) {
-		x = GAME_BOARD_X - center_distance;
-		++corrected_x;
+	if (abs(theta_offset < CAN_TURN_IN_PLACE)) {
+		if (abs(theta_offset) < THETA_TOLERANCE) {
+			theta = perpendicular_angle * DEGS;
+		}
+		else theta = (perpendicular_angle*DEGS) + theta_offset;
+		// at gameboard
+		float center_distance = cos(theta_offset)*(wall_distance[SIDE_BACK]*(1-SIDE_FRONT_BACK_RATIO) + wall_distance[SIDE_FRONT]*(SIDE_FRONT_BACK_RATIO) + CENTER_TO_SONAR_DISTANCE);
+		SERIAL_PRINT(wall_distance[SIDE_FRONT]);
+		SERIAL_PRINT(' ');
+		SERIAL_PRINT(wall_distance[SIDE_BACK]);
+		SERIAL_PRINT(' ');
+		SERIAL_PRINTLN(center_distance);
+		if (perpendicular_angle == DIR_RIGHT) {
+			x = GAME_BOARD_X - center_distance;
+			++corrected_x;
+		}
+		else if (perpendicular_angle == DIR_UP) {
+			y = 0 + center_distance;
+			++corrected_y;
+		}
+		else if (perpendicular_angle == DIR_LEFT)
+			x = 0 + center_distance;
 	}
-	else if (perpendicular_angle == DIR_UP) {
-		y = 0 + center_distance;
-		++corrected_y;
-	}
-	else if (perpendicular_angle == DIR_LEFT)
-		x = 0 + center_distance;
+	// offset is too large, ignore
 
 	for (byte sonar = 0; sonar < SONAR_MAX; ++sonar) {
 		prev_wall_distance[sonar] = wall_distance[sonar];

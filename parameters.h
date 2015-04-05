@@ -131,7 +131,7 @@ constexpr byte INTERSECTION_TOO_CLOSE = 40;	// allowed range [50,150] for x and 
 constexpr float START_PARALLEL_PARK = 0.3;	// start using sonar instead of turning in place at around 17 degrees
 constexpr int COR_TURN = 10; 
 constexpr float DISTANCE_FROM_PULSE = 0.34364261168;
-constexpr byte SONAR_CYCLE = 5;
+constexpr byte SONAR_CYCLE = 4;
 constexpr byte WALL_DISTANCE_READY = SONAR_CYCLE + 1;	// signifies wall distances are calculated
 constexpr int GAME_BOARD_X = 1800;
 constexpr byte RELIABLE_CORRECT_CYCLE = 6;	// how many correction cycles before considered stable value 
@@ -156,7 +156,6 @@ constexpr byte PLAYING = 4;
 
 
 // aligning to wall
-constexpr int SIDE_FRONT_OFFSET = 2;
 constexpr float CENTER_TO_SONAR_DISTANCE = 17;
 constexpr int SIDE_SONAR_DISTANCE = 111+123;
 constexpr float SIDE_FRONT_BACK_RATIO = 123.0/SIDE_SONAR_DISTANCE;
@@ -164,7 +163,7 @@ constexpr float SIDE_FRONT_BACK_RATIO = 123.0/SIDE_SONAR_DISTANCE;
 
 // playing the ball
 constexpr int PLAY_SPEED = 30;	// how fast to move between game board column locations
-constexpr int RENDEZVOUS_X = GAME_BOARD_X - WALL_DISTANCE - CENTER_TO_SONAR_DISTANCE + 10 - 200;
+constexpr int RENDEZVOUS_X = GAME_BOARD_X - WALL_DISTANCE - CENTER_TO_SONAR_DISTANCE;
 constexpr int RENDEZVOUS_Y = 890;
 constexpr int RENDEZVOUS_CLOSE = 5;	// within 5mm of rendezvous
 constexpr byte GAME_COLS = 7;

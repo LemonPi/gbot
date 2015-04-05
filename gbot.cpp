@@ -52,7 +52,7 @@ byte trigs[SONAR_MAX];
 byte echos[SONAR_MAX];
 float prev_wall_distance[SONAR_MAX];
 float wall_distance[SONAR_MAX];
-const float wall_distance_offset[SONAR_MAX] = {-7,0};
+const float wall_distance_offset[SONAR_MAX] = {0,0};
 byte sonar_num;
 byte sonar_cycle;
 byte turned_to_watch;

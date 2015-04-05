@@ -73,7 +73,7 @@ void user_behaviours() {
 		board_status = LEFT_WALL;
 		SERIAL_PRINTLN("BL");
 	}
-	// correct increments from 1 and resets back down to 0
+	// at top left corner, rotating to 90
 	else if (board_status == LEFT_WALL && corrected_y >= RELIABLE_CORRECT_CYCLE) {
 		board_status = GAME_WALL;
 		add_target(x, y, 90, TARGET_TURN);
@@ -83,13 +83,15 @@ void user_behaviours() {
 		enable_layer(LAYER_TURN);
 		reset_wall_distance();
 	}
+	// from top left corner to rendezvous
 	// don't turn in place when you're too close to the board
 	else if (board_status == GAME_WALL && corrected_x >= RELIABLE_CORRECT_CYCLE) {
 		board_status = GOING_TO_PLAY;
 		// go to rendezvous location
+		disable_layer(LAYER_TURN);
 		resume_drive(LAYER_NAV);
 		add_target(RENDEZVOUS_X, RENDEZVOUS_Y, 90, TARGET_WATCH);
-		disable_layer(LAYER_COR);
+		// disable_layer(LAYER_COR);
 		SERIAL_PRINTLN("BGP");
 	}
 
@@ -102,11 +104,11 @@ void user_behaviours() {
 		}
 	}
 	// if (active_layer == LAYER_PLAY) {
-		SERIAL_PRINT(heading_error * RADS);
-		SERIAL_PRINT('|');
-		SERIAL_PRINT(layers[active_layer].speed);
-		SERIAL_PRINT('|');
-		SERIAL_PRINTLN(layers[active_layer].angle);
+		// SERIAL_PRINT(heading_error * RADS);
+		// SERIAL_PRINT('|');
+		// SERIAL_PRINT(layers[active_layer].speed);
+		// SERIAL_PRINT('|');
+		// SERIAL_PRINTLN(layers[active_layer].angle);
 	// }
 }
 
@@ -126,6 +128,7 @@ void user_waypoint() {
 
 	if (board_status == LEFT_WALL && GAME_BOARD_X - x < SONAR_CLOSE_ENOUGH) {
 		// calibrate y position before turning
+		SERIAL_PRINTLN("FR");
 		enable_layer(LAYER_COR);
 		disable_layer(LAYER_TURN);
 		if (!paused) hard_break(LAYER_COR);
@@ -158,7 +161,7 @@ void user_waypoint() {
 	if (targets[target+1].type == TARGET_WATCH) {
 		if (target == NONE_ACTIVE) target = 0;
 		enable_layer(LAYER_WATCH);	
-		enable_layer(LAYER_COR);	
+		// enable_layer(LAYER_COR);	
 		layers[LAYER_PLAY].active = false;
 		layers[LAYER_WATCH].active = true;
 		turned_to_watch = 0;
@@ -169,7 +172,7 @@ void user_waypoint() {
 	// arrived at a column
 	else if (targets[target+1].type == TARGET_PLAY) {
 		enable_layer(LAYER_WATCH);	
-		enable_layer(LAYER_COR);	
+		// enable_layer(LAYER_COR);	
 		layers[LAYER_PLAY].active = true;
 		layers[LAYER_PLAY].speed = 0;
 		layers[LAYER_PLAY].angle = 0;

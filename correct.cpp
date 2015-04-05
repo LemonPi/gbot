@@ -83,11 +83,11 @@ void hug_wall() {
 		else theta = (perpendicular_angle*DEGS) + theta_offset;
 		// at gameboard
 		float center_distance = cos(theta_offset)*(wall_distance[SIDE_BACK]*(1-SIDE_FRONT_BACK_RATIO) + wall_distance[SIDE_FRONT]*(SIDE_FRONT_BACK_RATIO) + CENTER_TO_SONAR_DISTANCE);
-		SERIAL_PRINT(wall_distance[SIDE_FRONT]);
-		SERIAL_PRINT(' ');
-		SERIAL_PRINT(wall_distance[SIDE_BACK]);
-		SERIAL_PRINT(' ');
-		SERIAL_PRINTLN(center_distance);
+		// SERIAL_PRINT(wall_distance[SIDE_FRONT]);
+		// SERIAL_PRINT(' ');
+		// SERIAL_PRINT(wall_distance[SIDE_BACK]);
+		// SERIAL_PRINT(' ');
+		// SERIAL_PRINTLN(center_distance);
 		if (perpendicular_angle == DIR_RIGHT) {
 			x = GAME_BOARD_X - center_distance;
 			++corrected_x;

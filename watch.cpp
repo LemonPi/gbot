@@ -156,7 +156,7 @@ void drop_off_ball() {
 			add_target(col_pos[best_top_slot].x, col_pos[best_top_slot].y, 90, TARGET_PLAY);
 			// stop watching the game when moving around
 			disable_layer(LAYER_WATCH);
-			disable_layer(LAYER_COR);
+			// disable_layer(LAYER_COR);
 			layers[LAYER_PLAY].active = true;
 			return;
 		}

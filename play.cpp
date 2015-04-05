@@ -63,7 +63,7 @@ void play_ball() {
 			jammed = false;
 			// sonar less effective when moving
 			disable_layer(LAYER_WATCH);
-			disable_layer(LAYER_COR);
+			// disable_layer(LAYER_COR);
 		}
 		// perhaps jammed, try again (counted down all the way to 0)
 		else if (received_ball() && !jammed && ball_status > BALL_LESS && ball_status < 0.5*BALL_TO_BE_DROPPED) {

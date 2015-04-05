@@ -12,10 +12,13 @@ void turn_to_watch() {
 	if (active_layer == LAYER_WATCH) watch.angle = 0; 
 
 	float to_turn = HALFPI - theta;
-	if (turned_to_watch > RELIABLE_CORRECT_CYCLE && abs(to_turn) < 2*THETA_TOLERANCE) {	
+	if (turned_to_watch > RELIABLE_CORRECT_CYCLE) {	
 		turn_factor = 1;
 		return;
 	}
+	// kick whenever angle off by too much
+	if (abs(to_turn) > 2*THETA_TOLERANCE) turn_factor = 1;
+
 	int turn_speed = COR_TURN*turn_factor;
 	// jump start turning
 	if (turn_factor == 1) turn_speed *= 1.5;

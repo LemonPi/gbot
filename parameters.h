@@ -110,7 +110,7 @@ constexpr int NONE_ACTIVE = -1;
 
 // line detecting sensors
 constexpr int CALLIBRATION_TIME = 5000;	// 5s
-constexpr int THRESHOLD_TOLERANCE = 3;
+constexpr float THRESHOLD_TOLERANCE = 0.5;
 constexpr int LINE_WIDTH = 9; 			// about 1cm
 constexpr float HALF_LINE_WIDTH = 4.5;
 constexpr int GRID_WIDTH = 200;			// grid spaced about 200mm apart
@@ -140,7 +140,7 @@ constexpr int RELIABLE_SONAR_DISTANCE = 45;
 constexpr byte SIDE_FRONT = 0;
 constexpr byte SIDE_BACK = 1;
 constexpr byte FRONT = 2;
-constexpr float WALL_DISTANCE = 100;		// ideally 5cm away
+constexpr float WALL_DISTANCE = 85;		// ideally 5cm away
 constexpr float SONAR_DISTANCE_TOLERANCE = 3.5;
 constexpr float SONAR_CHANGE_ALLOWANCE = 400;	// allow a difference of 40mm from current to previous reading
 constexpr float SONAR_TOO_FAR = 2000;		// from sonar to wall

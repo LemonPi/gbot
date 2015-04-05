@@ -102,7 +102,7 @@ void calibrate() {
 
     // set threshold to be average (anything below is dark, anything above is bright)
     for (byte pin = 0; pin < SENSOR_MAX; ++pin) 
-        thresholds[pin] = (lows[pin] + highs[pin]) / THRESHOLD_TOLERANCE;
+        thresholds[pin] = lows[pin] + (highs[pin] - lows[pin]) * THRESHOLD_TOLERANCE;
     SERIAL_PRINTLN('c');
 }
 

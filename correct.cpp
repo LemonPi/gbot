@@ -18,7 +18,6 @@ void touch_wall() {
 	if (sonar_cycle < SONAR_CYCLE) {
 		bool outlier = false;
 		float distance[SONAR_MAX];
-		SERIAL_PRINT('.');
 		for (byte sonar = 0; sonar < sonar_num; ++sonar) {
 			// manual pulse
 			digitalWrite(trigs[sonar], LOW);
@@ -47,9 +46,7 @@ void touch_wall() {
 			delay(1);
 		}
 		if (!outlier) ++sonar_cycle;
-		outlier = false;
-		// SERIAL_PRINT('\n');
-		
+		outlier = false;		
 	}
 	else if (sonar_cycle == SONAR_CYCLE) {
 		// reset down to 0 by whichever uses the distances

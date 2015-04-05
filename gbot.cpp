@@ -101,13 +101,13 @@ void user_behaviours() {
 			sonar_cycle = 0;
 		}
 	}
-	if (active_layer == LAYER_PLAY) {
+	// if (active_layer == LAYER_PLAY) {
 		SERIAL_PRINT(heading_error * RADS);
 		SERIAL_PRINT('|');
-		SERIAL_PRINT(layers[LAYER_PLAY].speed);
+		SERIAL_PRINT(layers[active_layer].speed);
 		SERIAL_PRINT('|');
-		SERIAL_PRINTLN(layers[LAYER_PLAY].angle);
-	}
+		SERIAL_PRINTLN(layers[active_layer].angle);
+	// }
 }
 
 // control the correction layer

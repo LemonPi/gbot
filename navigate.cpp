@@ -12,9 +12,9 @@ int add_target(double tx, double ty, double td, byte type, bool rad) {
 	if (td != ANY_THETA) {
 		if (!rad) {
 			td *= DEGS;
-			if (td < -PI) td += TWOPI;
-			else if (td > PI) td -= TWOPI;
 		}
+		if (td < -PI) td += TWOPI;
+		else if (td > PI) td -= TWOPI;
 	}
 	++target;
 	targets[target].x = tx;
@@ -41,20 +41,38 @@ void hard_turn() {
 	// turn until theta ~= target_theta
 	if (abs(to_turn) < THETA_TOLERANCE) {
 		SERIAL_PRINTLN("dt");
-		waypoint();
+		waypoint(LAYER_TURN);
 		return;
 	}
 	
-	// turn with speed based on target_theta - theta
-	turn.angle = to_turn * NAV_TURN * 4;
-	// clamp to between min speed and top speed
-	if (abs(turn.angle) < MIN_SPEED) {
-		if (turn.angle < 0) turn.angle = -MIN_SPEED;
-		else turn.angle = MIN_SPEED;
+	// either to_turn close to turn size or even greater, kick start it (usually at start of turn)
+	if (turn_size - abs(to_turn) < THETA_TOLERANCE) {
+		if (to_turn < 0) turn.angle = -KICK_SPEED;
+		else turn.angle = KICK_SPEED;
+		return;
 	}
-	else if (abs(turn.angle) > TOP_SPEED) {
+	// compare against initial turn size
+	else if (abs(to_turn) < turn_size) {
+		turn.angle = to_turn/turn_size * NAV_TURN * 3;
+	}
+	else {
+		turn.angle = to_turn * NAV_TURN * 4;
+		SERIAL_PRINT("ot");
+		SERIAL_PRINTLN(to_turn*RADS);
+	}
+	// clamp to between min speed and top speed
+	// if (abs(turn.angle) < MIN_SPEED*0.4) {
+	// 	if (turn.angle < 0) turn.angle = -0.4*MIN_SPEED;
+	// 	else turn.angle = 0.4*MIN_SPEED;
+	// }
+
+	if (abs(turn.angle) > TOP_SPEED) {
 		if (turn.angle < 0) turn.angle = -TOP_SPEED;
 		else turn.angle = TOP_SPEED;
+	}
+	else {
+		if (turn.angle < 0) turn.angle -= 0.3*MIN_SPEED;
+		else turn.angle += 0.3*MIN_SPEED;
 	}
 }
 
@@ -77,6 +95,7 @@ void navigate() {
 
 		// push temporary targets (stationary, but turning)
 		add_target(x, y, heading_error + theta, TARGET_TURN, true);
+		turn_size = abs(heading_error);
 		layers[LAYER_TURN].active = true;
 		nav.active = false;
 
@@ -96,12 +115,13 @@ void navigate() {
 			abs(targets[target].theta - theta) > THETA_TOLERANCE &&
 			allowed_layer(LAYER_TURN)) {	// still needs turning
 			layers[LAYER_TURN].active = true;
+			turn_size = abs(targets[target].theta - theta);
 			++process_cycles;
 		}
 		// don't need to turn anymore
 		else {
 			SERIAL_PRINTLN('f');
-			waypoint();
+			waypoint(LAYER_NAV);
 		}
 	}
 	// still seeking target
@@ -148,8 +168,9 @@ void locate_target() {
 
 // arrived at target, called at the end of other behaviours
 // decides what behaviours to enable based on game and current state
-void waypoint() {
-	SERIAL_PRINTLN('w');
+void waypoint(byte layer) {
+	SERIAL_PRINT('w');
+	SERIAL_PRINTLN(layer);
 	// other targets to reach, lower stack index, reprocess
 	if (target > 0) { 
 		--target; 

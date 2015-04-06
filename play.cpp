@@ -18,7 +18,7 @@ void play_ball() {
 
 		// only consider y when playing back and forth
 		if (abs(targets[target].y - y) < COL_CLOSE) {
-			waypoint();
+			waypoint(LAYER_PLAY);
 			return;
 		}
 

@@ -55,7 +55,7 @@ void turn_to_watch() {
 // poll sensors bar for balls
 void watch_balls_drop() {
 	if (!layers[LAYER_WATCH].active) {
-		fire_lasers(HIGH);
+		fire_lasers(LOW);
 		return;
 	}
 
@@ -66,7 +66,7 @@ void watch_balls_drop() {
 		calibrate_bar(1000);
 	}
 
-	fire_lasers(LOW);
+	fire_lasers(HIGH);
 	// check if any ball dropped
 	watch_bar();
 	// check if only 1 ball dropped (check for power of 2; if not then probably false alarm)

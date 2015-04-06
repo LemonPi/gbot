@@ -28,6 +28,9 @@ int out_l, out_r;			// output values
 double x, y, theta, tot_distance;	
 double to_turn;
 
+// turning in place
+float turn_size;
+
 // waypoint navigation
 Target targets[TARGET_MAX];
 double target_distance, last_target_distance, heading_error;
@@ -131,6 +134,8 @@ void initialize_robot(byte c1_l, byte c2_l, byte outpin_l, byte c1_r, byte c2_r,
 	target = NONE_ACTIVE;
 	process_cycles = 1;
 
+	turn_size = 0;
+
 	// motor control
 	l.pin_assign(c1_l, c2_l, outpin_l);
 	r.pin_assign(c1_r, c2_r, outpin_r);
@@ -174,7 +179,7 @@ void start(byte layer) {
 	if (target != NONE_ACTIVE && allowed_layer(LAYER_NAV)) {
 		layers[LAYER_NAV].active = true;
 	}
-	else waypoint();
+	else waypoint(100);
 	user_start();
 }
 

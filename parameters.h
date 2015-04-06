@@ -72,6 +72,7 @@ constexpr float TURNING_RADIUS = BASE_WIDTH;
 constexpr float RECIPROCAL_BASE_WIDTH = 0.01004009;	// using reciprocal due to faster multiply than divide
 constexpr float MM_PER_TICK_L = 0.1688929559*1000/1045;
 constexpr float MM_PER_TICK_R = 0.16956084148*1000/1045;
+constexpr float L_R_TICK_RATIO = MM_PER_TICK_L / MM_PER_TICK_R;
 
 constexpr float KP = 1.194;
 constexpr float KI = 1.2;
@@ -82,6 +83,7 @@ constexpr int TPR = 1200;
 constexpr int TOP_SPEED = 50; 	// in ticks per cycle 
 constexpr int MIN_SPEED = 20;
 constexpr int START_SPEED = 45;
+constexpr int KICK_SPEED = 55;
 
 
 // navigation
@@ -164,14 +166,14 @@ constexpr float SIDE_FRONT_BACK_RATIO = 123.0/SIDE_SONAR_DISTANCE;
 // playing the ball
 constexpr int PLAY_SPEED = 30;	// how fast to move between game board column locations
 constexpr int RENDEZVOUS_X = GAME_BOARD_X - WALL_DISTANCE - CENTER_TO_SONAR_DISTANCE;
-constexpr int RENDEZVOUS_Y = 890;
+constexpr int RENDEZVOUS_Y = 885;
 constexpr int RENDEZVOUS_CLOSE = 5;	// within 5mm of rendezvous
 constexpr byte GAME_COLS = 7;
 constexpr byte GAME_HEIGHT = 6;	// 6 balls max
 constexpr byte SCORE_DEPTH = 3;	// only consider 3 away from the ball
 constexpr byte TWO_IN_ROW = 2;
 constexpr byte THREE_IN_ROW = 3;
-constexpr int LIFT_SPEED = 130;
+constexpr int LIFT_SPEED = 115;
 
 
 constexpr byte NO_BALL  = 0;
@@ -195,7 +197,7 @@ constexpr byte COL_WIDTH = 45;
 constexpr byte BALL_LESS = 0;
 constexpr byte JUST_GOT_BALL = 1;
 constexpr byte SECURED_BALL = 5;	// cycles of gate closing
-constexpr byte BALL_TO_BE_DROPPED = 70;	// 3.5s for it to rise
+constexpr byte BALL_TO_BE_DROPPED = 100;	// 3.5s for it to rise
 
 // sensor bar
 constexpr byte BAR_MAX = 7;

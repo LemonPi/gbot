@@ -44,6 +44,9 @@ extern int out_l, out_r;			// output values
 extern double x, y, theta, tot_distance;	
 extern double to_turn;	// turning in place
 
+// turn in place
+extern float turn_size;
+
 // waypoint navigation
 extern Target targets[TARGET_MAX];
 extern double target_distance, last_target_distance, heading_error;
@@ -86,7 +89,7 @@ void locate_target();
 // navigating to target
 void navigate();
 // what to do when arriving at 
-void waypoint();
+void waypoint(byte layer);
 // turning at waypoints
 void hard_turn();
 // avoiding boundaries

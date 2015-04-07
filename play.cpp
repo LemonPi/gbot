@@ -42,7 +42,7 @@ void play_ball() {
 		else if (backing_angle < 0) play.angle = -COR_TURN;
 		else play.angle = COR_TURN;
 
-		if (targets[target].type == TARGET_SHIMMY) play.speed *= 0.8;
+		// if (targets[target].type == TARGET_SHIMMY) play.speed *= 0.8;
 		stop_lift_ball();
 		// backup without turning (avoid errors)
 

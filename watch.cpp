@@ -65,26 +65,10 @@ void watch_balls_drop() {
 	}
 
 
-	// // try shimmying if far from desired x and recently played ball
-	// if (allowed_layer(LAYER_SHIMMY) && !layers[LAYER_PLAY].active && 
-	// 	(abs(x - RENDEZVOUS_X) > 2*RENDEZVOUS_CLOSE) && 
-	// 	(last_lift == 0 || millis() - last_lift < RECENT_LIFT)) {
-	// 	// disable_layer(LAYER_COR);
-	// 	disable_layer(LAYER_WATCH);
-	// 	resume_drive(LAYER_WATCH);
-	// 	layers[LAYER_PLAY].active = true;
-	// 	SERIAL_PRINTLN("sshim");
-	// 	// 100mm to the left
-	// 	add_target((x + RENDEZVOUS_X)/2, y - 300, 90, TARGET_SHIMMY);
-	// 	++process_cycles;
-	// 	return;
-	// }
-
-
 	if (!layers[LAYER_PLAY].active && millis() - last_random_lift > CALLIBRATION_TIME*2) {
 		SERIAL_PRINTLN("RL");
 		lift_ball();
-		delay(500);
+		delay(300);
 		stop_lift_ball();
 		last_random_lift = millis();
 	}

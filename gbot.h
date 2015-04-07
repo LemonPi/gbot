@@ -60,6 +60,8 @@ extern byte sonar_cycle;
 extern byte turned_to_watch;
 extern float turn_factor;
 
+extern unsigned long last_random_lift;
+extern unsigned long last_lift;
 
 
 void initialize_gbot(byte lift_p, byte ball_p, byte laser_p);
@@ -78,7 +80,7 @@ void pick_best_col();
 // watch module (listen to sensor bar)
 void turn_to_watch();
 void watch_balls_drop();
-void fire_lasers(byte level);
+void fire_lasers(int level);
 void watch_bar();
 int add_bar_sensor(byte sensor_pin, byte laser_pin);
 void calibrate_bar(unsigned long duration = CALLIBRATION_TIME);

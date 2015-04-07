@@ -12,12 +12,16 @@ void turn_to_watch() {
 	if (active_layer == LAYER_WATCH) watch.angle = 0; 
 
 	float to_turn = HALFPI - theta;
-	if (turned_to_watch > RELIABLE_CORRECT_CYCLE) {	
+	// kick whenever angle off by too much
+	if (abs(to_turn) > 2*THETA_TOLERANCE) {
+		if (paused) resume_drive(LAYER_WATCH);
+		turn_factor = 1;
+	}
+	else if (turned_to_watch > RELIABLE_CORRECT_CYCLE) {	
 		turn_factor = 1;
 		return;
 	}
-	// kick whenever angle off by too much
-	if (abs(to_turn) > 2*THETA_TOLERANCE) turn_factor = 1;
+
 
 	int turn_speed = COR_TURN*turn_factor;
 	// jump start turning
@@ -55,17 +59,41 @@ void turn_to_watch() {
 // poll sensors bar for balls
 void watch_balls_drop() {
 	if (!layers[LAYER_WATCH].active) {
+		// SERIAL_PRINTLN("NW");
 		fire_lasers(LOW);
 		return;
 	}
 
+
+	// // try shimmying if far from desired x and recently played ball
+	// if (allowed_layer(LAYER_SHIMMY) && !layers[LAYER_PLAY].active && 
+	// 	(abs(x - RENDEZVOUS_X) > 2*RENDEZVOUS_CLOSE) && 
+	// 	(last_lift == 0 || millis() - last_lift < RECENT_LIFT)) {
+	// 	// disable_layer(LAYER_COR);
+	// 	disable_layer(LAYER_WATCH);
+	// 	resume_drive(LAYER_WATCH);
+	// 	layers[LAYER_PLAY].active = true;
+	// 	SERIAL_PRINTLN("sshim");
+	// 	// 100mm to the left
+	// 	add_target((x + RENDEZVOUS_X)/2, y - 300, 90, TARGET_SHIMMY);
+	// 	++process_cycles;
+	// 	return;
+	// }
+
+
+	if (!layers[LAYER_PLAY].active && millis() - last_random_lift > CALLIBRATION_TIME*2) {
+		SERIAL_PRINTLN("RL");
+		lift_ball();
+		delay(500);
+		stop_lift_ball();
+		last_random_lift = millis();
+	}
 	if (turned_to_watch < RELIABLE_CORRECT_CYCLE) return;
 	// only watch if you don't have ball or about to drop ball?
 	if (millis() - last_calibrate_time > CALLIBRATION_TIME*3) {
 		SERIAL_PRINTLN("CB");
 		calibrate_bar(1000);
 	}
-
 	fire_lasers(HIGH);
 	// check if any ball dropped
 	watch_bar();
@@ -165,8 +193,14 @@ void drop_off_ball() {
 	else if (!received_ball() && !layers[LAYER_PLAY].active && ball_status < SECURED_BALL) ball_status = BALL_LESS;
 }
 
-void fire_lasers(byte level) {
-	digitalWrite(laser_pin, level);
+void fire_lasers(int level) {
+	// SERIAL_PRINT("FL");
+	// SERIAL_PRINT(laser_pin);
+	// SERIAL_PRINT('|');
+	// SERIAL_PRINTLN(level);
+
+	if (level == 0) digitalWrite(laser_pin, LOW);
+	else digitalWrite(laser_pin, HIGH);
 }
 
 // updates if slots and whether ball dropped

@@ -42,6 +42,7 @@ void play_ball() {
 		else if (backing_angle < 0) play.angle = -COR_TURN;
 		else play.angle = COR_TURN;
 
+		if (targets[target].type == TARGET_SHIMMY) play.speed *= 0.8;
 		stop_lift_ball();
 		// backup without turning (avoid errors)
 
@@ -61,6 +62,7 @@ void play_ball() {
 			play.angle = 0;
 			played_ball = true;
 			jammed = false;
+			last_lift = tot_distance;
 			// sonar less effective when moving
 			disable_layer(LAYER_WATCH);
 			// disable_layer(LAYER_COR);

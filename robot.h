@@ -67,7 +67,7 @@ extern byte on_lines;	// bit array, only 8 bits (sensors)
 extern byte prev_on_lines;
 extern int thresholds[SENSOR_MAX];
 
-
+extern int wait_cycles;
 extern bool drive, paused, on;
 
 // methods
@@ -115,7 +115,7 @@ void initialize_robot(byte c1_l, byte c2_l, byte outpin_l, byte c1_r, byte c2_r,
 
 void start(byte layer);
 void stop(byte layer);
-void hard_break(byte layer);
+void hard_break(byte layer, int cycles = -1);
 void resume_drive(byte layer);
 
 byte get_active_layer();
@@ -139,7 +139,9 @@ void indicate_sensors();
 void correct_to_grid();
 int square_heading();
 bool far_from_intersection(int candidate_x, int candidate_y);
-
+bool far_from_grid(int xx, int yy);
+bool close_to_wall(int candidate_x, int candidate_y);
+bool parallel_to_horizontal();
 
 // retrieve information from the robot
 bool get_on();

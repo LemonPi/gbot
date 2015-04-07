@@ -1,4 +1,5 @@
 // #include <Adafruit_TiCoServo.h>
+#include <Arduino.h>
 #include "gbot.h"
 #include "parameters.h"
 
@@ -58,6 +59,9 @@ byte sonar_cycle;
 byte turned_to_watch;
 float turn_factor;
 
+unsigned long last_random_lift;
+unsigned long last_lift;
+
 
 
 // called inside every go cycle
@@ -69,13 +73,16 @@ void user_behaviours() {
 		reset_wall_distance();
 	// first reaching the left wall
 
-	if (board_status == STARTING_LOCATION && y - 0 < SONAR_CLOSE_ENOUGH && square_heading() == DIR_UP && x > 600) {
+	if (board_status == STARTING_LOCATION && y - 0 < SONAR_CLOSE_ENOUGH && square_heading() == DIR_UP && x > 900) {	// [DEBUG] 600 for actual game play
 		board_status = LEFT_WALL;
 		SERIAL_PRINTLN("BL");
 		disable_layer(LAYER_TURN);
 		enable_layer(LAYER_COR);
 	}
 	// at top left corner, rotating to 90
+	else if (board_status == LEFT_WALL && abs(x - targets[target].x) < RENDEZVOUS_CLOSE) {
+		waypoint(LAYER_NAV);
+	}
 	else if (board_status == LEFT_WALL && corrected_y >= RELIABLE_CORRECT_CYCLE && paused) {
 		board_status = GAME_WALL;
 		enable_layer(LAYER_TURN);
@@ -117,13 +124,13 @@ void user_behaviours() {
 			sonar_cycle = 0;
 		}
 	}
-	// if (active_layer == LAYER_PLAY) {
-		// SERIAL_PRINT(heading_error * RADS);
-		// SERIAL_PRINT('|');
-		// SERIAL_PRINT(layers[active_layer].speed);
-		// SERIAL_PRINT('|');
-		// SERIAL_PRINTLN(layers[active_layer].angle);
-	// }
+	if (active_layer == LAYER_PLAY) {
+		SERIAL_PRINT(heading_error * RADS);
+		SERIAL_PRINT('|');
+		SERIAL_PRINT(layers[active_layer].speed);
+		SERIAL_PRINT('|');
+		SERIAL_PRINTLN(layers[active_layer].angle);
+	}
 }
 
 // control the correction layer
@@ -188,6 +195,12 @@ void user_waypoint() {
 		hard_break(LAYER_PLAY);
 		SERIAL_PRINTLN("col");
 	}
+	// shimmying back and forth
+	else if (targets[target+1].type == TARGET_SHIMMY) {
+		add_target(RENDEZVOUS_X, RENDEZVOUS_Y, 90, TARGET_WATCH);
+		hard_break(LAYER_NAV, 5);
+		SERIAL_PRINTLN("shim");
+	}
 
 	// turn_to_watch();
 }
@@ -230,6 +243,9 @@ void initialize_gbot(byte lift, byte ball, byte laser) {
 	turned_to_watch = 0;
 	turn_factor = 1;
 
+	last_random_lift = 0;
+	last_lift = 0;
+
 	// initialize game board
 	for (byte col = 0; col < GAME_COLS; ++col) {
 		for (byte row = 0; row < GAME_HEIGHT; ++row) {
@@ -253,7 +269,7 @@ void user_start() {
 	turn_factor = 1;
 }
 void user_stop() {
-	stop_lift_ball();
+		stop_lift_ball();
 	fire_lasers(LOW);
 }
 

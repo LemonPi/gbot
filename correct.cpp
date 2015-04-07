@@ -72,7 +72,9 @@ void hug_wall() {
 	float distance_offset = wall_distance[SIDE_FRONT] - wall_distance[SIDE_BACK];
 	float theta_offset = atan2(distance_offset, SIDE_SONAR_DISTANCE);
 	SERIAL_PRINT('H');
-	SERIAL_PRINTLN(distance_offset);
+	SERIAL_PRINT(wall_distance[SIDE_FRONT]);
+	SERIAL_PRINT(' ');
+	SERIAL_PRINTLN(wall_distance[SIDE_BACK]);
 
 	int perpendicular_angle = square_heading();
 

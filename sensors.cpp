@@ -36,13 +36,26 @@ void correct_to_grid() {
 
 bool far_from_intersection(int xx, int yy) {
 	// only consider x when near red center line
-	byte offset_x = abs((int)xx) % GRID_WIDTH;
+	byte offset_x = abs(xx) % GRID_WIDTH;
 	if (abs(yy - RENDEZVOUS_Y) < 0.5*GRID_WIDTH) return (offset_x < INTERSECTION_TOO_CLOSE || offset_x > GRID_WIDTH - INTERSECTION_TOO_CLOSE);
-	byte offset_y = abs((int)yy) % GRID_WIDTH;
+	byte offset_y = abs(yy) % GRID_WIDTH;
 	return (offset_x < INTERSECTION_TOO_CLOSE || offset_x > GRID_WIDTH - INTERSECTION_TOO_CLOSE) ^
-			(offset_y < INTERSECTION_TOO_CLOSE || offset_y > GRID_WIDTH - INTERSECTION_TOO_CLOSE);	
+		   (offset_y < INTERSECTION_TOO_CLOSE || offset_y > GRID_WIDTH - INTERSECTION_TOO_CLOSE);	
 }
-
+bool far_from_grid(int xx, int yy) {
+	byte offset_x = abs(xx) % GRID_WIDTH;
+	byte offset_y = abs(yy) % GRID_WIDTH;
+	return !(offset_x < INTERSECTION_TOO_CLOSE || offset_x > GRID_WIDTH - INTERSECTION_TOO_CLOSE) &&
+		   !(offset_y < INTERSECTION_TOO_CLOSE || offset_y > GRID_WIDTH - INTERSECTION_TOO_CLOSE);
+}
+bool close_to_wall(int xx, int yy) {
+	if (xx < GRID_WIDTH/2 || yy < GRID_WIDTH/2 || xx > GAME_BOARD_X - GRID_WIDTH/2 || yy > GAME_BOARD_Y - GRID_WIDTH/2) return true;
+	else return false;
+}
+bool parallel_to_horizontal() {
+	return (theta < 0 && abs(theta - (-HALFPI)) < THETA_TOLERANCE*5) ||
+		   (theta > 0 && abs(theta - (HALFPI)) < THETA_TOLERANCE*5);
+}
 
 // round angle to multiples of 90
 int square_heading() {

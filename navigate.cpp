@@ -28,6 +28,7 @@ int add_target(double tx, double ty, double td, byte type, bool rad) {
 // turning in place
 // check if turn has been completed
 void hard_turn() {
+	// static int stall_cycles = 0;
 	Layer& turn = layers[LAYER_TURN];
 
 	turn.speed = 0;				// turn in place, no translational velocity
@@ -41,6 +42,7 @@ void hard_turn() {
 	// turn until theta ~= target_theta
 	if (abs(to_turn) < THETA_TOLERANCE) {
 		SERIAL_PRINTLN("dt");
+		// stall_cycles = 0;
 		waypoint(LAYER_TURN);
 		return;
 	}
@@ -65,14 +67,27 @@ void hard_turn() {
 	// 	if (turn.angle < 0) turn.angle = -0.4*MIN_SPEED;
 	// 	else turn.angle = 0.4*MIN_SPEED;
 	// }
+	// if ((int)turn.angle == 0) {
+	// 	if (stall_cycles > MOTOR_STALLING) {
+	// 		if (to_turn < 0) turn.angle = -0.35*MIN_SPEED;
+	// 		else turn.angle = 0.35*MIN_SPEED;
+	// 		stall_cycles = 0;
+	// 		SERIAL_PRINTLN("st");
+	// 	}
+	// 	else ++stall_cycles;
+	// }
+	// else {
+	// 	SERIAL_PRINT("nst");
+	// 	SERIAL_PRINTLN((int)turn.angle);
+	// }
 
 	if (abs(turn.angle) > TOP_SPEED) {
 		if (turn.angle < 0) turn.angle = -TOP_SPEED;
 		else turn.angle = TOP_SPEED;
 	}
 	else {
-		if (turn.angle < 0) turn.angle -= 0.3*MIN_SPEED;
-		else turn.angle += 0.3*MIN_SPEED;
+		if (to_turn < 0) {turn.angle -= 0.35*MIN_SPEED;}
+		else {turn.angle += 0.35*MIN_SPEED;}
 	}
 }
 
@@ -171,6 +186,15 @@ void locate_target() {
 void waypoint(byte layer) {
 	SERIAL_PRINT('w');
 	SERIAL_PRINTLN(layer);
+	// wait after turning in place
+	if (layer == LAYER_TURN) {
+		// SERIAL_PRINTLN("LT");
+		hard_break(LAYER_TURN, 5);
+	}
+	// else {
+	// 	SERIAL_PRINT("NT");
+	// 	SERIAL_PRINTLN(layer);
+	// }
 	// other targets to reach, lower stack index, reprocess
 	if (target > 0) { 
 		--target; 
@@ -183,6 +207,7 @@ void waypoint(byte layer) {
 		layers[LAYER_NAV].active = false;
 		layers[LAYER_TURN].active = false;
 	}
+
 	// get next target by checking current position against game state
 
 	// finished turning in place (2nd call of waypoint)

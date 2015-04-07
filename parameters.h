@@ -50,6 +50,7 @@ constexpr byte TARGET_TURN = 1;
 constexpr byte TARGET_PLAY = 2;
 constexpr byte TARGET_WATCH = 3;
 constexpr byte TARGET_GET = 4;
+constexpr byte TARGET_SHIMMY = 5;
 
 // sensor indices and general direction
 constexpr byte CENTER = B0001;		// center sensor is sensor 0
@@ -72,7 +73,7 @@ constexpr float TURNING_RADIUS = BASE_WIDTH;
 constexpr float RECIPROCAL_BASE_WIDTH = 0.01004009;	// using reciprocal due to faster multiply than divide
 constexpr float MM_PER_TICK_L = 0.1688929559*1000/1045;
 constexpr float MM_PER_TICK_R = 0.16956084148*1000/1045;
-constexpr float L_R_TICK_RATIO = MM_PER_TICK_L / MM_PER_TICK_R;
+constexpr float L_R_SPEED_RATIO = MM_PER_TICK_L / MM_PER_TICK_R;
 
 constexpr float KP = 1.194;
 constexpr float KI = 1.2;
@@ -136,6 +137,8 @@ constexpr float DISTANCE_FROM_PULSE = 0.34364261168;
 constexpr byte SONAR_CYCLE = 4;
 constexpr byte WALL_DISTANCE_READY = SONAR_CYCLE + 1;	// signifies wall distances are calculated
 constexpr int GAME_BOARD_X = 1800;
+constexpr int GAME_BOARD_Y = 1600;
+
 constexpr byte RELIABLE_CORRECT_CYCLE = 6;	// how many correction cycles before considered stable value 
 constexpr int RELIABLE_SONAR_DISTANCE = 45;
 
@@ -174,6 +177,7 @@ constexpr byte SCORE_DEPTH = 3;	// only consider 3 away from the ball
 constexpr byte TWO_IN_ROW = 2;
 constexpr byte THREE_IN_ROW = 3;
 constexpr int LIFT_SPEED = 115;
+constexpr unsigned long RECENT_LIFT = 5000;	// within 5s from depositing the last ball
 
 
 constexpr byte NO_BALL  = 0;

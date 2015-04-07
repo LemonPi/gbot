@@ -50,7 +50,7 @@ byte indicators[SENSOR_MAX];
 byte on_lines, prev_on_lines;
 int thresholds[SENSOR_MAX];
 
-
+int wait_cycles;
 bool drive, on, paused;
 
 const double kp = KP;
@@ -71,6 +71,8 @@ bool go() {
 	// update internal position and do speed control
 	odometry();
 
+	if (wait_cycles == 0 && paused) resume_drive(66);
+	else --wait_cycles;
 
 	// might have to reprocess cycle if waypoint is reached
 	while (process_cycles > 0) {
@@ -88,9 +90,12 @@ bool go() {
 		--process_cycles;
 	}
 
-	pid_control(instant_tick_l, instant_tick_r);
-
-	if (drive != MANUAL) {
+	if (wait_cycles > 0) {
+		l.drive(0);
+		r.drive(0);
+	}
+	else if (drive != MANUAL) {
+		pid_control(instant_tick_l, instant_tick_r);
 		l.drive(out_l);
 		r.drive(out_r);
 	}
@@ -145,7 +150,7 @@ void initialize_robot(byte c1_l, byte c2_l, byte outpin_l, byte c1_r, byte c2_r,
 	time_prev_sensors = 0;
 	sensor_num = 0;
 
-
+	wait_cycles = 0;
 	drive = AUTOMATIC;
 	on = false; 
 	paused = true;
@@ -179,7 +184,7 @@ void start(byte layer) {
 	if (target != NONE_ACTIVE && allowed_layer(LAYER_NAV)) {
 		layers[LAYER_NAV].active = true;
 	}
-	else waypoint(100);
+	else waypoint(66);
 	user_start();
 }
 
@@ -189,14 +194,18 @@ void stop(byte layer) {
 	user_stop();
 }
 
-void hard_break(byte layer) {	
+void hard_break(byte layer, int cycles) {
+	wait_cycles = cycles;	
 	paused = true;
 	l.stop(); 
 	r.stop();
 	SERIAL_PRINT('h');	// hard break
-	SERIAL_PRINTLN(layer);
+	SERIAL_PRINT(layer);
+	SERIAL_PRINT('|');
+	SERIAL_PRINTLN(cycles);
 }
 void resume_drive(byte layer) {
+	wait_cycles = 0;
 	paused = false;
 	if (dir_l == FORWARD) l.forward();
 	else l.backward();
@@ -304,12 +313,14 @@ void motor_control(byte layer) {
 		l.forward();
 	}
 
-	target_r = control_layer.speed - control_layer.angle;
+	target_r = (control_layer.speed - control_layer.angle)*L_R_SPEED_RATIO;
 	if (target_r < 0) {
 		target_r = -target_r;
 		if (dir_r == FORWARD) {
 			dir_r = BACKWARD;
 			r.backward();
+			// give the right one a kick
+			target_r += 15;
 		}
 	}
 	else if (target_r > 0 && dir_r == BACKWARD) {

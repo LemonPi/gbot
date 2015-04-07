@@ -48,6 +48,7 @@ extern int counted_lines;
 extern byte board_status;
 extern byte corrected_y;
 extern byte corrected_x;
+extern unsigned long cycles_corrected;
 
 // sonar
 extern byte trigs[SONAR_MAX];

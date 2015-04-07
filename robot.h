@@ -43,6 +43,8 @@ extern int out_l, out_r;			// output values
 // internal coordinates
 extern double x, y, theta, tot_distance;	
 extern double to_turn;	// turning in place
+extern int RENDEZVOUS_X;
+extern int RENDEZVOUS_Y;
 
 // turn in place
 extern float turn_size;
@@ -125,6 +127,8 @@ void disable_layer(byte layer);
 
 void set_coordinate(double tx, double ty, double td = 0.0);
 void set_drive(bool mode);
+
+void set_rendezvous(int rx, int ry);
 
 int add_target(double tx, double ty, double td = ANY_THETA, byte type = TARGET_NAV, bool rad = false);
 int add_boundary(double bx, double by, double radius = 0);	// by default a point

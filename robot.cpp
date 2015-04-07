@@ -337,6 +337,11 @@ void set_coordinate(double tx, double ty, double td) {
 	theta = td*DEGS;
 }
 
+void set_rendezvous(int rx, int ry) {
+	RENDEZVOUS_X = rx;
+	RENDEZVOUS_Y = ry;
+}
+
 void set_drive(bool mode) {drive = mode;}
 
 bool get_on() {return on;}

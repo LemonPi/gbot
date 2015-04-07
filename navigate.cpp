@@ -62,32 +62,14 @@ void hard_turn() {
 		SERIAL_PRINT("ot");
 		SERIAL_PRINTLN(to_turn*RADS);
 	}
-	// clamp to between min speed and top speed
-	// if (abs(turn.angle) < MIN_SPEED*0.4) {
-	// 	if (turn.angle < 0) turn.angle = -0.4*MIN_SPEED;
-	// 	else turn.angle = 0.4*MIN_SPEED;
-	// }
-	// if ((int)turn.angle == 0) {
-	// 	if (stall_cycles > MOTOR_STALLING) {
-	// 		if (to_turn < 0) turn.angle = -0.35*MIN_SPEED;
-	// 		else turn.angle = 0.35*MIN_SPEED;
-	// 		stall_cycles = 0;
-	// 		SERIAL_PRINTLN("st");
-	// 	}
-	// 	else ++stall_cycles;
-	// }
-	// else {
-	// 	SERIAL_PRINT("nst");
-	// 	SERIAL_PRINTLN((int)turn.angle);
-	// }
 
 	if (abs(turn.angle) > TOP_SPEED) {
-		if (turn.angle < 0) turn.angle = -TOP_SPEED;
+		if (to_turn < 0) turn.angle = -TOP_SPEED;
 		else turn.angle = TOP_SPEED;
 	}
 	else {
-		if (to_turn < 0) {turn.angle -= 0.35*MIN_SPEED;}
-		else {turn.angle += 0.35*MIN_SPEED;}
+		if (to_turn < 0) {turn.angle -= 0.40*MIN_SPEED;}
+		else {turn.angle += 0.40*MIN_SPEED;}
 	}
 }
 
@@ -112,6 +94,7 @@ void navigate() {
 		add_target(x, y, heading_error + theta, TARGET_TURN, true);
 		turn_size = abs(heading_error);
 		layers[LAYER_TURN].active = true;
+		hard_break(LAYER_NAV, 3);
 		nav.active = false;
 
 		SERIAL_PRINT("t ");
@@ -129,6 +112,7 @@ void navigate() {
 		if (abs(targets[target].theta - ANY_THETA) > 1 && 	// target isn't just any theta
 			abs(targets[target].theta - theta) > THETA_TOLERANCE &&
 			allowed_layer(LAYER_TURN)) {	// still needs turning
+			hard_break(LAYER_NAV, 3);
 			layers[LAYER_TURN].active = true;
 			turn_size = abs(targets[target].theta - theta);
 			++process_cycles;

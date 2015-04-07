@@ -138,6 +138,7 @@ constexpr byte SONAR_CYCLE = 4;
 constexpr byte WALL_DISTANCE_READY = SONAR_CYCLE + 1;	// signifies wall distances are calculated
 constexpr int GAME_BOARD_X = 1800;
 constexpr int GAME_BOARD_Y = 1600;
+constexpr unsigned long BREAK_FROM_OUTLIER = 300;
 
 constexpr byte RELIABLE_CORRECT_CYCLE = 6;	// how many correction cycles before considered stable value 
 constexpr int RELIABLE_SONAR_DISTANCE = 45;
@@ -168,8 +169,6 @@ constexpr float SIDE_FRONT_BACK_RATIO = 123.0/SIDE_SONAR_DISTANCE;
 
 // playing the ball
 constexpr int PLAY_SPEED = 30;	// how fast to move between game board column locations
-constexpr int RENDEZVOUS_X = GAME_BOARD_X - WALL_DISTANCE - CENTER_TO_SONAR_DISTANCE;
-constexpr int RENDEZVOUS_Y = 885;
 constexpr int RENDEZVOUS_CLOSE = 5;	// within 5mm of rendezvous
 constexpr byte GAME_COLS = 7;
 constexpr byte GAME_HEIGHT = 6;	// 6 balls max

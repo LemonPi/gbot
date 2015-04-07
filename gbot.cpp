@@ -5,6 +5,9 @@
 
 namespace robot {
 
+int RENDEZVOUS_X = GAME_BOARD_X - WALL_DISTANCE - CENTER_TO_SONAR_DISTANCE;
+int RENDEZVOUS_Y = 885;
+
 byte lift_pin;
 byte ball_pin;
 bool ball_dropped;
@@ -47,6 +50,7 @@ int counted_lines;
 byte board_status;
 byte corrected_y;
 byte corrected_x;
+unsigned long cycles_corrected;
 
 
 byte trigs[SONAR_MAX];
@@ -73,7 +77,7 @@ void user_behaviours() {
 		reset_wall_distance();
 	// first reaching the left wall
 
-	if (board_status == STARTING_LOCATION && y - 0 < SONAR_CLOSE_ENOUGH && square_heading() == DIR_UP && x > 900) {	// [DEBUG] 600 for actual game play
+	if (board_status == STARTING_LOCATION && y - 0 < SONAR_CLOSE_ENOUGH && square_heading() == DIR_UP && x > 600) {	// [DEBUG] 600 for actual game play
 		board_status = LEFT_WALL;
 		SERIAL_PRINTLN("BL");
 		disable_layer(LAYER_TURN);
@@ -83,7 +87,7 @@ void user_behaviours() {
 	else if (board_status == LEFT_WALL && abs(x - targets[target].x) < RENDEZVOUS_CLOSE) {
 		waypoint(LAYER_NAV);
 	}
-	else if (board_status == LEFT_WALL && corrected_y >= RELIABLE_CORRECT_CYCLE && paused) {
+	else if (board_status == LEFT_WALL && (corrected_y >= RELIABLE_CORRECT_CYCLE && paused || cycles_corrected == BREAK_FROM_OUTLIER)) {
 		board_status = GAME_WALL;
 		enable_layer(LAYER_TURN);
 		add_target(x, y, 90, TARGET_TURN);
@@ -94,7 +98,7 @@ void user_behaviours() {
 	}
 	// from top left corner to rendezvous
 	// don't turn in place when you're too close to the board
-	else if (board_status == GAME_WALL && corrected_x >= RELIABLE_CORRECT_CYCLE) {
+	else if (board_status == GAME_WALL && (corrected_x >= RELIABLE_CORRECT_CYCLE || cycles_corrected == BREAK_FROM_OUTLIER)) {
 		board_status = GOING_TO_PLAY;
 		// go to rendezvous location
 		disable_layer(LAYER_TURN);
@@ -155,13 +159,15 @@ void user_waypoint() {
 		if (!paused) hard_break(LAYER_COR);
 		// reset to force stationary correct cycles
 		corrected_y = 0;
+		cycles_corrected = 0;
 	}	
 	else if (board_status == GAME_WALL) {
 		hard_break(LAYER_TURN);
 		SERIAL_PRINTLN("RW");
 		reset_wall_distance();
-		delay(500);
+		delay(250);
 		enable_layer(LAYER_COR);
+		cycles_corrected = 0;
 	}
 
 	// nothing else to do, go back to rendezvous
@@ -237,6 +243,7 @@ void initialize_gbot(byte lift, byte ball, byte laser) {
 	board_status = STARTING_LOCATION;
 	corrected_y = 0;
 	corrected_x = 0;
+	cycles_corrected = 0;
 
 	sonar_num = 0;
 	sonar_cycle = 0;

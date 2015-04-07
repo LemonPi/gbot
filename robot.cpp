@@ -313,7 +313,8 @@ void motor_control(byte layer) {
 		l.forward();
 	}
 
-	target_r = (control_layer.speed - control_layer.angle)*L_R_SPEED_RATIO;
+	// target_r = (control_layer.speed - control_layer.angle)*L_R_SPEED_RATIO;
+	target_r = (control_layer.speed - control_layer.angle);
 	if (target_r < 0) {
 		target_r = -target_r;
 		if (dir_r == FORWARD) {
